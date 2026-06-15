@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Only logic, im fucking done with creating UI">
+    <title>Collatzium</title>
+    
+    <!-- LINKS -->
+    <link rel="stylesheet" href="assets/tailwind/dist/output.css">
+</head>
+<body class="min-h-screen bg-gray-800 text-white flex justify-center text-center">
+    <header class="flex flex-col items-center">
+        <h1 class="p-8 text-3xl font-bold">This is such a cool text! :D</h1>
+        <div class="control-box flex flex-col max-w-60 align-middle ml-3 gap-2">
+            <div class="inp-controls flex flex-row content-center gap-2 align-middle w-auto pl-5 pr-5">             
+                <button class="clear-inp inp-cont">clear</button>             
+                <button class="save-inp inp-cont">save</button>             
+                <button class="rand-inp inp-cont">rand</button>         
+            </div>
+
+            <input
+                type="text"
+                class="number-input border-white border min-w-50 rounded-2xl p-2 bg-gray-500"
+                value="27"
+                name="number-input"
+                id="number-input"
+                placeholder="Input number here..."
+            >
+
+            <div class="inp-controls flex flex-row content-center gap-2 align-middle w-auto">             
+                <button class="proc-reset inp-cont">reset</button>             
+                <button class="proc-run inp-cont">run</button>             
+                <button class="proc-skip inp-cont">skip</button>         
+            </div>
+        </div>    
+    </header>
+
+    <main>
+        
+    </main>
+    
+    <script src="./main.js" type="module"></script>
+    <script src="./scripts/justUI/inputControls.js" type="module"></script>
+    <!-- <script src="CollatzLogic/mainCollatz.js" defer></script> -->
+</body>
+</html>

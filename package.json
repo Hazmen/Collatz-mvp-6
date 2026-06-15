@@ -1,0 +1,22 @@
+{
+  "name": "mvp-v6",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build:css": "tailwindcss -i ./assets/tailwind/src/input.css -o ./assets/tailwind/dist/output.css",
+    "watch:css": "tailwindcss -i ./assets/tailwind/src/input.css -o ./assets/tailwind/dist/output.css --watch",
+    "start": "concurrently \"npm run watch:css\" \"npm run lite\"",
+    "lite": "lite-server"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.0",
+    "concurrently": "^10.0.3",
+    "lite-server": "^2.6.1",
+    "tailwindcss": "^4.3.0"
+  }
+}
