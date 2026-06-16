@@ -7,7 +7,7 @@ let inpValue = 0n // empty at first
 const CollatzWorker = new Worker("CollatzLogic/workers/collatz.worker.js");
 
 // DOM things
-usinp = $('.number-input');
+let usinp = $('.number-input');
 const inp = BigInt(usinp.value);
 
 const RunProc = $('.proc-run');
