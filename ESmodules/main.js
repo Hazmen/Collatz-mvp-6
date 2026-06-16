@@ -1,5 +1,11 @@
 import { $, $$, $$$ } from './utils/dom.js';
 import { InputControlsHere } from './ui/inputControls.js';
+import { mainInputField, preventLetters } from './ui/uiElements.js';
 // ... другие импорты
 
-InputControlsHere(); // It should work...
+// input controls
+InputControlsHere(); // It should work..
+
+// input itself
+preventLetters(mainInputField);
+
