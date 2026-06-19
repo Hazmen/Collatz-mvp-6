@@ -22,3 +22,108 @@
     background-color: color-mix(in oklab, var(--color-gray-600, #4b5563) 100%, transparent);
   }
 }
+
+/* @utility txtList-obj {
+  padding: 2px;
+  padding-top: 0px;
+  margin: 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px dotted #CCCCCC;
+  }
+}
+
+@utility txtList-span {
+  color: #a8b5ce;
+  width: 100%;
+  &::after {
+    content: " ";
+  }
+}
+
+@utility sequence-list-container {
+  scrollbar-width: thin;
+  
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent; 
+
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 9999px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
+  }
+} */
+
+@utility txtList-obj {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  margin: 0;
+  border-radius: 6px;
+  white-space: nowrap;
+  transition: background-color 0.15s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+  overflow-y: hidden;
+  overflow-x: auto;
+
+  color-scheme: dark;
+  ::-webkit-scrollbar: none;
+  scrollbar-width: none;
+
+  
+  
+
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    scrollbar-width: thin;
+    scrollbar-color: #555555 #222222;
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+@utility txtList-span {
+  color: #64748b;
+  font-weight: 500;
+  min-width: 32px;
+  display: inline-block;
+  user-select: none;
+}
+
+@utility sequence-list-container {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 9999px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+}
+
+
