@@ -1,19 +1,24 @@
 import { $, $$, $$$ } from '../utils/dom.js';
+import { mainInputField, inputControls_Elements } from './uiElements.js'
 // import store from '../../ESmodules/store.js';
 
 // Nescessary DOM elements
 
-let usinp = $('.number-input');
 
-let randInp = $('.rand-inp');
-let clearInp = $('.clear-inp');
-let saveInp = $('.save-inp');
+// INPUT lock
+export function preventLetters(inp) {
+    inp.addEventListener('beforeinput', (e) => {
+        if (e.data && !/^[0-9]+$/.test(e.data)) {
+            e.preventDefault();
+        }
+    });
+};
 
 // LOGIC of Random Input Value button
 
-const MAX_RANDOM = 99999999999n;
+export const MAX_RANDOM = 99999999999n;
 
-export function InputControlsHere() {
+export function InputControlsHere(setMax) {
     function LetItRandom(setMax) {
         const digits = setMax.toString().length;
         let result;
@@ -32,21 +37,21 @@ export function InputControlsHere() {
         return result;
     }
 
-    randInp.addEventListener('click', () => {
+    inputControls_Elements.randomInput.addEventListener('click', () => {
         const randResult = LetItRandom(MAX_RANDOM);
-        usinp.value = randResult.toString();
+        mainInputField.value = randResult.toString();
 
-        usinp.dispatchEvent(new Event('input', { bubbles: true }));
-        usinp.focus();
+        mainInputField.dispatchEvent(new Event('input', { bubbles: true }));
+        mainInputField.focus();
     });
 
     // LOGIC of Clear Input (value) button
 
-    clearInp.addEventListener('click', () => {
-        usinp.value = '';
+    inputControls_Elements.clearInput.addEventListener('click', () => {
+        mainInputField.value = '';
 
-        usinp.dispatchEvent(new Event('input', { bubbles: true }));
-        usinp.focus();
+        mainInputField.dispatchEvent(new Event('input', { bubbles: true }));
+        mainInputField.focus();
     });
 
     // LOGIC of Save Input (value) button

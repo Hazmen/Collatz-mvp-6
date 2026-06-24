@@ -39,7 +39,7 @@ self.onmessage = (e) => {
         
         // what it should send when Done or if an Error occurs 
         self.postMessage(
-            { type: "done", steps: list.length + 1, max}, 
+            { type: "done", steps: list.length - 1, max}, 
         );
     } catch (err) {
         self.postMessage({ type: "error", message: "Фантастика, что-то снова сломалось! ... Или это ввод неправильный." })
