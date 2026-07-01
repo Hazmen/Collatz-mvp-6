@@ -1,7 +1,6 @@
 import { $, $$, $$$ } from '../utils/dom.js';
 import { mainInputField, inputControls_Elements } from './uiElements.js'
 // import store from '../../ESmodules/store.js';
-
 // Nescessary DOM elements
 
 
@@ -16,10 +15,9 @@ export function preventLetters(inp) {
 
 // LOGIC of Random Input Value button
 
-export const MAX_RANDOM = 99999999999n;
-
-export function InputControlsHere(setMax) {
-    function LetItRandom(setMax) {
+export function InputControlsHere() {
+    const setMax = 99999999999n;
+    function LetItRandom() {
         const digits = setMax.toString().length;
         let result;
 
@@ -38,7 +36,7 @@ export function InputControlsHere(setMax) {
     }
 
     inputControls_Elements.randomInput.addEventListener('click', () => {
-        const randResult = LetItRandom(MAX_RANDOM);
+        const randResult = LetItRandom(setMax);
         mainInputField.value = randResult.toString();
 
         mainInputField.dispatchEvent(new Event('input', { bubbles: true }));
@@ -55,5 +53,6 @@ export function InputControlsHere(setMax) {
     });
 
     // LOGIC of Save Input (value) button
+    // soon to be made..
 }
 

@@ -33,7 +33,7 @@ self.onmessage = (e) => {
             self.postMessage({
                 type: "chunk",
                 data: list.slice(i, i + CHUNK_SIZE), // it does it here i mean
-                offset: i // ... its offset i cant explain
+                offset: i // offset - индекс начала chunk внутри полной последовательности.
             });
         }
         
