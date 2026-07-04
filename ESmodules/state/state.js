@@ -46,10 +46,23 @@ export function setToogleSwitch(ts, st) { return TUMBLERS[ts] = st; }
 export function getAllToogles() { return TUMBLERS; }
 
 // Custom events that alert other modules that needed data is here
-stateTarget.addEventListener('collatz_ready', (event) => {
-    state.workerResult = event.detail.seq;
-    state.workerMaxNum = event.detail.max;
-    state.workerListLen = event.detail.len;
+// stateTarget.addEventListener('collatz_ready', (event) => {
+//     state.workerResult = event.detail.seq;
+//     state.workerMaxNum = event.detail.max;
+//     state.workerListLen = event.detail.len;
 
-    TUMBLERS.collatz_received = true;
-});
+//     TUMBLERS.collatz_received = true;
+// });
+
+export function sendCollatz_MainData(data) {
+    state.workerResult.push(...data.data);
+};
+
+export function sendCollatz_SecondaryData(max, length) {
+    state.workerMaxNum = max;
+    state.workerListLen = length;
+};
+
+export function sendCollatz_ErrorData(cause) {
+    state.errorCause = cause;
+}
