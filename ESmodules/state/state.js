@@ -23,7 +23,7 @@ const TUMBLERS = {
 }
 
 export function toReset() { // reset State (like, a new session of computing)
-    state = {
+    Object.assign(state, {
         status: 'idle', 
         activeInputValue: 0n,
         inputError: false,
@@ -32,7 +32,7 @@ export function toReset() { // reset State (like, a new session of computing)
         workerMaxNum: 0n,
         errorCause: null,
         // .. and so on
-    }
+    });
 }
 
 export function getState() { return state; }
@@ -42,7 +42,7 @@ export function setState(patch) { Object.assign(state, patch); }
 export function setStateValue(obj, value) { state[obj] = value; }
 
 export function getToogleSwitch(ts) { return TUMBLERS[ts].value; }
-export function setToogleSwitch(ts, st) { return TUMBLERS[ts].value = st; }
+export function setToogleSwitch(ts, st) { return TUMBLERS[ts] = st; }
 export function getAllToogles() { return TUMBLERS; }
 
 // Custom events that alert other modules that needed data is here
