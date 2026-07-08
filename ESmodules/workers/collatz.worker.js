@@ -27,7 +27,7 @@ self.onmessage = (e) => {
     
         list.push(ONE);
     
-        const CHUNK_SIZE = 10000;
+        const CHUNK_SIZE = 1000;
     
         for (let i = 0; i <= list.length; i+=CHUNK_SIZE) { // it basically slices the list length into 10,000 steps chunks
             self.postMessage({

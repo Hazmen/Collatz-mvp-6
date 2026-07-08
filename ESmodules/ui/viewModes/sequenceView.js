@@ -1,4 +1,6 @@
 export function txtListObj_create(parent, index, number) {
+    const isEven = (num) => num % 2 === 0;
+
     const txtList_obj = 
     `
     <div class="txtList-obj">
@@ -11,3 +13,4 @@ export function txtListObj_create(parent, index, number) {
         parent.insertAdjacentHTML('beforeend', txtList_obj);
     }
 };
+

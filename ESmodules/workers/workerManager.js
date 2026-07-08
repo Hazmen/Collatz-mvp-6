@@ -1,4 +1,6 @@
-import { getSpecificState, state, setToogleSwitch, stateTarget, sendCollatz_ErrorData } from "../state/state.js";
+import { state, stateTarget } from "../state/state.js";
+import * as ev from "../events.js"
+import { setToogleSwitch } from "../state/stateManager.js";
 
 const worker = new Worker(new URL('./collatz.worker.js', import.meta.url), { type: 'module' });
 
@@ -21,41 +23,28 @@ worker.onmessage = (e) => {
             status: 'success'
         }
     });
-
-    const CollatzError_Event = new CustomEvent('collatz_error', {
-        detail: {
-            seq: [],
-            max: 0n,
-            len: 0,
-            cause: 'Something went wrong :(',
-            status: 'error'
-        }
-    });
+    
+    
 
     // receiving chunks
     if (e.data.type === 'chunk') {
-        // state.workerResult.push(...e.data.data);
-        sendCollatz_MainData(e.data);
+        ev.sendCollatz_MainData(state, workerResult, e.data);
     }
 
     // it is done sending chunks, it sends the amount of steps the number got and the biggest number in sequence
     if (e.data.type === 'done') {
-        // state.workerListLen = e.data.steps;
-        // state.workerMaxNum = e.data.max;
 
         // switch its assigned toogle switch to True
         setToogleSwitch('collatz_received', true);
 
         // new badass way to write all the data :DDDD
-        // stateTarget.dispatchEvent(CollatzData_Event);
-        sendCollatz_SecondaryData(e.data.max, e.data.steps);
+        ev.sendCollatz_SecondaryData( state, e.data.max, e.data.steps, stateTarget );
     }
 
     // getting to know that something went wrong (yeah off course it will) 
     if (e.data.type === 'error') {
-        // stateTarget.dispatchEvent(CollatzError_Event);
 
-        sendCollatz_ErrorData( 'Something went wrong :(' );
+        ev.sendCollatz_ErrorData( state, 'Something went wrong :(', stateTarget );
     }
 };
 
