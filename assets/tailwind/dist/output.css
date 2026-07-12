@@ -258,7 +258,7 @@
   .ml-3 {
     margin-left: calc(var(--spacing) * 3);
   }
-  .txtList-span {
+  .txtList-index {
     color: #64748b;
     font-weight: 500;
     min-width: 32px;
@@ -339,6 +339,9 @@
   .min-h-screen {
     min-height: 100vh;
   }
+  .w-1 {
+    width: calc(var(--spacing) * 1);
+  }
   .w-6 {
     width: calc(var(--spacing) * 6);
   }
@@ -360,8 +363,20 @@
   .w-full {
     width: 100%;
   }
+  .max-w-1 {
+    max-width: calc(var(--spacing) * 1);
+  }
+  .max-w-10 {
+    max-width: calc(var(--spacing) * 10);
+  }
+  .max-w-50 {
+    max-width: calc(var(--spacing) * 50);
+  }
   .max-w-60 {
     max-width: calc(var(--spacing) * 60);
+  }
+  .max-w-120 {
+    max-width: calc(var(--spacing) * 120);
   }
   .max-w-md {
     max-width: var(--container-md);

@@ -98,7 +98,7 @@
   }
 }
 
-@utility txtList-span {
+@utility txtList-index {
   color: #64748b;
   font-weight: 500;
   min-width: 32px;
@@ -135,6 +135,14 @@
 @utility txtList-obj.expanded .math-exp-anim {
   opacity: 1;
   transform: translateX(0);
+}
+
+@utility txtList-index {
+  color: #64748b;
+  font-weight: 500;
+  min-width: 32px;
+  display: inline-block;
+  user-select: none;
 }
 
 

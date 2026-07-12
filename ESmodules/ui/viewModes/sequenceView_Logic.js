@@ -10,11 +10,11 @@ export function txtListObj_create(parent, index, number) {
     const exp_color = isEven(number) ? 'text-emerald-400' : 'text-blue-400';
 
     const txtList_el = document.createElement("div");
-    txtList_el.classList.add('txtList', 'flex', 'flex-row', 'justify-between', 'overflow-x-hidden');
+    txtList_el.classList.add('txtList-obj', 'flex', 'flex-row', 'justify-between', 'overflow-x-hidden');
 
     const indexSpan = document.createElement('span');
     indexSpan.classList.add('txtList-index');
-    indexSpan.textContent = `${indexSpan}.`
+    indexSpan.textContent = `${index}.`
 
     const numSpan = document.createElement('span');
     numSpan.classList.add('txtList-num');
