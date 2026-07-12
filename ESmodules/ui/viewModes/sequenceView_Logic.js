@@ -21,7 +21,7 @@ export function txtListObj_create(parent, index, number) {
     numSpan.textContent = number;
 
     const expSpan = document.createElement('span');
-    expSpan.classList.add('txtList-exp', 'math-exp-anim', 'overflow-x-hidden');
+    expSpan.classList.add('txtList-exp', 'math-exp-anim');
     expSpan.textContent = expression;
 
     enableDragScroll(numSpan, { horizontal: true, vertical: false });

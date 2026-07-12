@@ -123,7 +123,7 @@
   }
 }
 
-.math-exp-anim {
+@utility math-exp-anim {
   opacity: 0;
   transform: translateX(100%);
   transition: opacity 0.3s ease-out, transform 0.3s ease-out;
