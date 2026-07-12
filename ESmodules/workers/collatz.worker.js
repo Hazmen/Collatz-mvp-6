@@ -21,7 +21,7 @@ self.onmessage = (e) => {
             if ((n & 1n) === 0n) {
                 n = n >> 1n;
             } else {
-                n = n * THREE + ONE;
+                n = (n << 1n) + n + 1n;
             }
         }
     

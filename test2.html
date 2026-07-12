@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smooth Number Scroll</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Кастомный скроллбар, чтобы не зависеть от плагинов Tailwind */
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #27272a; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #52525b; border-radius: 4px; transition: background 0.2s; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #71717a; }
+        
+        /* Убираем выделение текста при быстром дергании мышкой */
+        .no-select {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+    </style>
+</head>
+<body class="flex flex-col justify-center items-center min-h-screen bg-zinc-950 p-8 font-sans text-zinc-300">
+
+    <div class="flex flex-col gap-4 w-full max-w-md">
+        <label class="text-sm font-medium text-zinc-500 uppercase tracking-wider">Transaction ID</label>
+        
+        <!-- Сам контейнер с числом -->
+        <div id="numberBox" class="custom-scrollbar no-select flex items-center overflow-x-auto whitespace-nowrap rounded-lg bg-zinc-900 border border-zinc-800 px-4 py-3 font-mono text-lg text-zinc-100 shadow-xl cursor-grab active:cursor-grabbing transition-colors">
+            18279475813765819365829385781376578239575
+        </div>
+    </div>
+
+    <script>
+        const box = document.getElementById('numberBox');
+        
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        // Функция начала перетаскивания
+        const startDrag = (e) => {
+            isDown = true;
+            // Меняем курсор глобально, чтобы не было мерцания, если мышь уйдет за пределы бокса
+            document.body.style.cursor = 'grabbing'; 
+            
+            // Берем координату X (поддержка и мыши, и тача)
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            startX = clientX;
+            scrollLeft = box.scrollLeft;
+        };
+
+        // Функция завершения перетаскивания
+        const stopDrag = () => {
+            if (!isDown) return;
+            isDown = false;
+            document.body.style.cursor = ''; // Возвращаем курсор в дефолтное состояние
+        };
+
+        // Сама логика движения
+        const onDrag = (e) => {
+            if (!isDown) return;
+            e.preventDefault(); // Блокируем нативное поведение (выделение текста, скролл страницы на мобилках)
+
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            
+            // Считаем пройденную дистанцию. Множитель 1.2 добавляет немного "резкости", 
+            // чтобы не пришлось тянуть мышь через весь стол. Можно поставить 1 для 1:1.
+            const walk = (clientX - startX) * 1.2; 
+            
+            // Обновляем скролл. Минус стоит потому что если тянем вправо (walk > 0), 
+            // то содержимое должно уезжать влево (scrollLeft уменьшается).
+            box.scrollLeft = scrollLeft - walk;
+        };
+
+        // --- СОБЫТИЯ МЫШИ ---
+        box.addEventListener('mousedown', startDrag);
+        
+        // ГЛАВНЫЙ ФИКС: слушаем отпускание и движение на всем документе, а не на самом боксе
+        document.addEventListener('mouseup', stopDrag);
+        document.addEventListener('mousemove', onDrag);
+
+        // --- СОБЫТИЯ ТАЧСКРИНА (для мобилок) ---
+        box.addEventListener('touchstart', startDrag, { passive: true });
+        document.addEventListener('touchend', stopDrag);
+        // passive: false важен, чтобы e.preventDefault() внутри onDrag мог блокировать скролл самой страницы
+        document.addEventListener('touchmove', onDrag, { passive: false }); 
+
+    </script>
+</body>
+</html>

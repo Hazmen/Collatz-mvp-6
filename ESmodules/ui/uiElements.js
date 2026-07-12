@@ -17,7 +17,8 @@ export const randomInput = $('.rand-inp');
 
 
 // sequence list Text version
-export let txtList = $('.sequence-list');
+export let txtList = $('.sequence-list-card');
+export const txtList_sidebar = $$$('seqList_sidebar_btn');
 
 
 // idk i need style values for smth
@@ -39,6 +40,12 @@ export const inputControls_Elements = {
     saveInput,
     clearInput,
     randomInput
+}
+
+// Sequence List batch
+export const seqList_Elements = {
+    txtList,
+    txtList_sidebar
 }
 
 

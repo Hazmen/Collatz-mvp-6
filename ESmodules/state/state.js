@@ -16,6 +16,12 @@ const CONSTANTS = {
     // DELETE IF TURNS OUT TO BE USELESS!
 }
 
+// const ui_States = {
+//     sequenceList_dflt_width: 'w-96',
+//     sequenceList_max_width: 'w-120',
+
+// }
+
 /*
 This object will be necessary when
 i will want to allow users to

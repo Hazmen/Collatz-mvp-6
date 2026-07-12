@@ -47,7 +47,7 @@
 
   
         <div class="
-                sequence-list-card w-100 h-130 mb-5
+                sequence-list-card group w-96 h-128 mb-5 duration-300 overflow-hidden
                 bg-slate-950 rounded-2xl overflow-hidden
                 shadow-2xl shadow-black/50 border border-slate-800/80
         ">
@@ -60,11 +60,36 @@
                 sequence-list-container w-full h-full 
                 overflow-auto p-4 select-text
             ">
+                <div class="sequence-list-header text-left m-2 font-bold flex flex-row justify-between align-middle items-center content-center" 
+                     style="font-family: Verdana, Geneva, Tahoma, sans-serif;">
+                    <p>Sequence List</p> 
+
+                    <button class="backdrop-blur-2xl bg-slate-950 rounded-full w-9 h-9 hover:bg-slate-900 flex justify-center items-center cursor-pointer" id="seqList_sidebar_btn">
+                        <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
+                             viewBox="0 0 512 512"
+                             preserveAspectRatio="xMidYMid meet" 
+                             class="invert w-6 h-6 block">
+                            <g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)" fill="#000000" stroke="none">
+                                <path d="M1317 4624 c-423 -76 -748 -404 -822 -829 -23 -131 -23 -2339 0
+                                -2470 38 -217 127 -389 284 -545 157 -156 331 -247 550 -285 125 -22 2337 -22
+                                2462 0 434 76 758 400 834 834 22 125 22 2337 0 2462 -75 433 -400 759 -830
+                                834 -125 22 -2357 21 -2478 -1z m1833 -2064 l0 -1761 -892 3 -893 3 -80 27
+                                c-111 38 -196 91 -279 173 -82 81 -135 167 -174 280 l-27 80 0 1195 0 1195 27
+                                80 c84 245 273 415 523 470 47 11 247 14 928 14 l867 1 0 -1760z m685 1727
+                                c111 -36 197 -90 280 -172 81 -82 134 -168 173 -280 l27 -80 0 -1195 0 -1195
+                                -27 -80 c-39 -112 -92 -198 -173 -280 -83 -82 -169 -136 -280 -172 -66 -21
+                                -105 -27 -222 -31 l-143 -5 0 1763 0 1763 143 -5 c117 -4 156 -10 222 -31z"/>
+                            </g>
+                        </svg>
+                    </button>
+                </div>
+
 
                 <div class="
                     sequence-list
                     flex flex-col gap-2 font-mono 
                     text-[14px] text-slate-100 tracking-wide
+                    overflow-x-hidden
                 ">
 
                     <!-- objects that the list contains -->
@@ -84,9 +109,12 @@
                         <span class="font-bold">12345678901234567890123456789012345678901234567890</span>
                     </div>
 
-                    <div class="txtList-obj">
-                        <span class="txtList-span">2.</span>
-                        <span class="font-bold">41</span>
+                    <div class="txtList-obj flex flex-row justify-between overflow-x-hidden">
+                        <div class="txtList-obj_item">
+                            <span class="txtList-span">2.</span>
+                            <span class="font-bold">41</span>  
+                        </div>  
+                        <span class="math-exp math-exp-anim hidden">×3+1</span>
                     </div>
 
                     

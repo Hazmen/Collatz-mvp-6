@@ -126,4 +126,16 @@
   }
 }
 
+@utility math-exp-anim {
+  opacity: 0;
+  transform: translateX(100%)l-143
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+@utility txtList-obj.expanded .math-exp-anim {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+
 
