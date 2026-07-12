@@ -232,7 +232,7 @@
     overflow-y: hidden;
     overflow-x: auto;
     color-scheme: dark;
-    : :-webkit-scrollbar: none;
+    &::-webkit-scrollbar: none;
     scrollbar-width: none;
     &:hover {
       background-color: rgba(255, 255, 255, 0.05);
@@ -389,7 +389,12 @@
   }
   .math-exp-anim {
     opacity: 0;
-    transform: translateX(100%)l-143 transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    transform: translateX(100%);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+  }
+  .txtList-obj.expanded .math-exp-anim {
+    opacity: 1;
+    transform: translateX(0);
   }
   .transform {
     transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);

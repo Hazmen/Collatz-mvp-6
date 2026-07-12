@@ -1,9 +1,6 @@
 @import "tailwindcss";
 @source "../../../index.html";
 
-
-@import "tailwindcss";
-
 @utility inp-cont {
   border-radius: var(--radius-2xl, 1rem);
   padding: calc(var(--spacing) * 2);
@@ -80,7 +77,7 @@
   overflow-x: auto;
 
   color-scheme: dark;
-  ::-webkit-scrollbar: none;
+  &::-webkit-scrollbar: none;
   scrollbar-width: none;
 
   
@@ -126,13 +123,13 @@
   }
 }
 
-@utility math-exp-anim {
+.math-exp-anim {
   opacity: 0;
-  transform: translateX(100%)l-143
+  transform: translateX(100%);
   transition: opacity 0.3s ease-out, transform 0.3s ease-out;
 }
 
-@utility txtList-obj.expanded .math-exp-anim {
+.txtList-obj.expanded .math-exp-anim {
   opacity: 1;
   transform: translateX(0);
 }
