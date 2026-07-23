@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Draggable Window</title>
+<style>
+  body {
+    background-color: #e5e5e5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+  }
+  .window {
+    position: absolute;
+    width: 320px;
+    background-color: #f0f0f0;
+    border: 1px solid #cccccc;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    top: 100px;
+    left: 100px;
+  }
+  .title-bar {
+    background-color: #ffffff;
+    padding: 10px 12px;
+    cursor: move;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e0e0e0;
+    user-select: none;
+  }
+  .title {
+    font-size: 14px;
+    color: #333333;
+    font-weight: 600;
+  }
+  .content {
+    padding: 20px;
+    font-size: 13px;
+    color: #444444;
+  }
+</style>
+</head>
+<body>
+
+<div class="window" id="draggableWindow">
+  <div class="title-bar" id="windowHeader">
+    <span class="title">Windows 10 Style</span>
+  </div>
+  <div class="content">
+    Click and drag the top white bar to move this box around the screen.
+  </div>
+</div>
+
+<script>
+  const win = document.getElementById("draggableWindow");
+  const header = document.getElementById("windowHeader");
+  
+  let posX = 0, posY = 0, mouseX = 0, mouseY = 0;
+
+  header.onmousedown = dragMouseDown;
+
+  function dragMouseDown(e) {
+    e.preventDefault();
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    document.onmouseup = closeDragElement;
+    document.onmousemove = elementDrag;
+  }
+
+  function elementDrag(e) {
+    e.preventDefault();
+    posX = mouseX - e.clientX;
+    posY = mouseY - e.clientY;
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    win.style.top = (win.offsetTop - posY) + "px";
+    win.style.left = (win.offsetLeft - posX) + "px";
+  }
+
+  function closeDragElement() {
+    document.onmouseup = null;
+    document.onmousemove = null;
+  }
+</script>
+
+</body>
+</html>

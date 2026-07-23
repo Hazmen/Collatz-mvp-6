@@ -1,4 +1,5 @@
-import { state, stateTarget, speedState } from "../state/state.js";
+import { state, stateTarget, speedState, SBSconfig } from "../state/state.js";
+
 
 
 stateTarget.addEventListener('collatz_done', () => {
@@ -6,4 +7,4 @@ stateTarget.addEventListener('collatz_done', () => {
     const bs = speedState.batchSize;
     
     
-})
+});
