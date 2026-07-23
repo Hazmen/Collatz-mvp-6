@@ -17,10 +17,10 @@ export const randomInput = $('.rand-inp');
 
 
 // sequence list Text version
-export let txtList = $('.sequence-list-card');
+export let txtList = $('.sequence-list');
 export const txtList_sidebar = $$$('seqList_sidebar_btn');
 
-
+    
 // idk i need style values for smth
 export let seqListObj_Font = $('.txtList-obj_font');
 

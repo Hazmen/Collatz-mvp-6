@@ -11,16 +11,18 @@ export const state = {
 
 export const stateTarget = new EventTarget();
 
-const CONSTANTS = {
-    // data that will not change (and may be used by multiple modules)
-    // DELETE IF TURNS OUT TO BE USELESS!
-}
+export const speedState = {
+    intervalMs: 0,
+    batchSize: 1,
+};
 
-// const ui_States = {
-//     sequenceList_dflt_width: 'w-96',
-//     sequenceList_max_width: 'w-120',
-
-// }
+export const SBSconfig = {
+    currentStepIndex: 0,
+    isRunning: false,
+    doneRunning: false,
+    visibleItems: [],
+    currentyDisplayedMaxNum: null, // this is the max number that is currently displayed in the lis
+};
 
 /*
 This object will be necessary when
@@ -31,16 +33,16 @@ but people will be able to change this
                AS 
               THEY 
               WISH 
-*/
-export const CALC_PARAMETERS = { // dflt = default
-    ifEven: dflt, /* n : 2 */
-    ifOdd: dflt   /* n × 3 + 1 */
-}
+*/ 
+// export const CALC_PARAMETERS = { // dflt = default
+//     ifEven: dflt, /* n : 2 */
+//     ifOdd: dflt,   /* n × 3 + 1 */
+// }
 
 
-const TUMBLERS = {
+export const TUMBLERS = {
     collatz_received: false,
-
+    
     // ... and so on
 }
 

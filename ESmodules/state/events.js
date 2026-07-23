@@ -1,7 +1,7 @@
-import { stateTarget, state, TUMBLERS } from "./state.js";
+import { stateTarget, state } from "./state.js";
 
 export function sendCollatz_MainData(item, st, data) {
-    item.st.push(...data.data);
+    item[st].push(...data.data);
 };
 
 export function sendCollatz_SecondaryData(item, max, length, target) {

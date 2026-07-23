@@ -1,5 +1,5 @@
 import { state, stateTarget } from "../state/state.js";
-import * as ev from "../events.js"
+import * as ev from "../state/events.js"
 import { setToogleSwitch } from "../state/stateManager.js";
 
 const worker = new Worker(new URL('./collatz.worker.js', import.meta.url), { type: 'module' });
@@ -13,22 +13,9 @@ export function workerManager_Recieve(inputValue) {
 };
 
 worker.onmessage = (e) => {
-    // customEvents
-    const CollatzData_Event = new CustomEvent('collatz_ready', {
-        detail: {
-            seq: [...e.data.data],
-            max: e.data.max,
-            len: e.data.steps,
-
-            status: 'success'
-        }
-    });
-    
-    
-
     // receiving chunks
     if (e.data.type === 'chunk') {
-        ev.sendCollatz_MainData(state, workerResult, e.data);
+        ev.sendCollatz_MainData(state, 'workerResult', e.data);
     }
 
     // it is done sending chunks, it sends the amount of steps the number got and the biggest number in sequence
@@ -41,9 +28,8 @@ worker.onmessage = (e) => {
         ev.sendCollatz_SecondaryData( state, e.data.max, e.data.steps, stateTarget );
     }
 
-    // getting to know that something went wrong (yeah off course it will) 
+    // getting to know that something went wrong (yeah of course it will) 
     if (e.data.type === 'error') {
-
         ev.sendCollatz_ErrorData( state, 'Something went wrong :(', stateTarget );
     }
 };
