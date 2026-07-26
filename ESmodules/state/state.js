@@ -6,7 +6,7 @@ export const state = {
     workerListLen: 0,
     workerMaxNum: 0n,
     errorCause: null,
-    // .. and so on
+    // ... and so on
 }
 
 export const stateTarget = new EventTarget();
@@ -21,7 +21,11 @@ export const SBSconfig = {
     isRunning: false,
     doneRunning: false,
     visibleItems: [],
-    currentyDisplayedMaxNum: null, // this is the max number that is currently displayed in the lis
+    currentMaxNum: 0n, // this is the max number that is currently displayed in the lis
+    currentBatch: [],
+    batchStartIndex: 0,
+    batchEndIndex: 0,
+    // ... and so on
 };
 
 /*

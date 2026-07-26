@@ -28,3 +28,19 @@ export function sendCollatz_ErrorData(item, cause, target) {
     
     target.dispatchEvent(CollatzData_ErrorEvent);
 };
+
+/* -------------- SBS Output Events -------------- */
+
+export function sendSBS_Data(item, data, target, startIndex, endIndex) {
+    item.currentBatch = data;
+    item.batchStartIndex = startIndex;
+    item.batchEndIndex = endIndex;
+
+    const SBSData_BatchEvent = new CustomEvent('sbs_batch', {
+        detail: {
+            status: 'batch'
+        }
+    });
+    
+    target.dispatchEvent(SBSData_BatchEvent);
+};

@@ -1,4 +1,4 @@
-import { enableDragScroll } from "../dragModule.js";
+import { enableDragScroll } from "../../ui/dragModule.js";
 
 export function txtListObj_create(parent, index, number) {
     const isEven = (number) => (number & 1n) === 0n;

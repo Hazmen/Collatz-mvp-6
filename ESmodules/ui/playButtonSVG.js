@@ -1,5 +1,6 @@
 import { SBSconfig } from "../state/state.js";
 import { runButton } from "./uiElements.js";
+import { resumeSBS } from "../core/SBSoutputManager.js";
 
 export function PlayOrPause() {
     SBSconfig.isRunning = !SBSconfig.isRunning;

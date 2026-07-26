@@ -1,8 +1,8 @@
 import { $, $$, $$$ } from './utils/dom.js';
 import { InputControlsHere } from './ui/inputControls.js';
 import { mainInputField, txtList } from './ui/uiElements.js';
+import { SBSoutput } from './core/SBSoutputManager.js';
 import { preventLetters } from './ui/inputControls.js';
-import { txtListObj_create } from './ui/viewModes/sequenceView_Logic.js';
 import { RunSequenceCalc } from './ui/runProcessControls.js';
 import '../webComponents/speedController.js';
 
@@ -14,6 +14,8 @@ RunSequenceCalc();
 
 // input itself
 preventLetters(mainInputField);
+
+SBSoutput();
 
 // to Widen
 // toWiden();
