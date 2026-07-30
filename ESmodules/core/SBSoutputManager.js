@@ -1,5 +1,5 @@
 import { state, stateTarget, speedState, SBSconfig } from "../state/state.js";
-import { sendSBS_Data, sendSBS_DoneEvent, sendSBS_ClearEvent } from "../state/events.js";
+import { sendSBS_Data, sendSBS_DoneEvent, sendSBS_ClearEvent, sendSBS_SkipEvent } from "../state/events.js";
 import { resetSBS } from "../state/stateManager.js";
 
 // SBS = Step By Step 
@@ -33,8 +33,26 @@ export function finishSBS() {
 }
 
 // ------ SKIP ALL REMAINING ------ \\
-export function skipAllRemaining() {
+export function skipSBS() {
+    if (SBSconfig.doneRunning) return;
 
+    pauseSBS();
+    switchRunning(false);
+
+    const workerResultLen = state.workerResult.length; 
+    // const startIndex = SBSconfig.currentStepIndex;
+
+    currentBatch = state.workerResult.slice(SBSconfig.currentStepIndex, SBSconfig.currentStepIndex + workerResultLen);
+    SBSconfig.visibleItems.push(...currentBatch);
+
+    SBSconfig.currentMaxNum = state.workerMaxNum;
+
+    // const endIndex = startIndex + currentBatch.length - 1;
+    // SBSconfig.currentStepIndex = startIndex + currentBatch.length;
+
+    sendSBS_SkipEvent(SBSeventTarget, currentBatch);
+
+    finishSBS();
 }
 
 // ------ PAUSE & RESUME ------ \\

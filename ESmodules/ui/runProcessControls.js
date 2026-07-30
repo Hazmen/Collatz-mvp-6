@@ -33,6 +33,5 @@ export function RunSequenceCalc() {
             // Play Pause change
             PlayOrPause();
         }
-
     });
 }

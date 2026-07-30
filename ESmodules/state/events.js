@@ -68,3 +68,16 @@ export function sendSBS_ClearEvent(target) {
     target.dispatchEvent(SBSClearEvent);
 };
 
+export function sendSBS_SkipEvent(target, data) {
+    item.currentBatch = data;
+
+    const SBSkipEvent = new CustomEvent('sbs_skip', {
+        detail: {
+            status: 'skipped',
+            batch: data
+        }
+    });
+
+    target.dispatchEvent(SBSkipEvent);
+}
+
