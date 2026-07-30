@@ -1,0 +1,57 @@
+diff --git a/ESmodules/state/state.js b/ESmodules/state/state.js
+--- a/ESmodules/state/state.js
++++ b/ESmodules/state/state.js
+@@
+ export const state = {
+     // status: 'idle', // idle - untouched; computing - in process of adding new data; error - error; ready - modules are allowed to use data from there
+     activeInputValue: 0n,
+     inputError: false,
++    isComputing: false,
+     workerResult: [],
+     workerListLen: 0,
+     workerMaxNum: 0n,
+     errorCause: null,
+     // ... and so on
+ }
+diff --git a/ESmodules/workers/workerManager.js b/ESmodules/workers/workerManager.js
+--- a/ESmodules/workers/workerManager.js
++++ b/ESmodules/workers/workerManager.js
+@@
+ // runProcessControls.js uses the input value that it has and we send it to the worker so it does it's thing :)
+ export function workerManager_Recieve(inputValue) {
++    state.isComputing = true;
+     worker.postMessage(inputValue);
+ };
+@@
+     if (e.data.type === 'done') {
++        state.isComputing = false;
+ 
+         // switch its assigned toogle switch to True
+         setToogleSwitch('collatz_received', true);
+@@
+     // getting to know that something went wrong (yeah of course it will) 
+     if (e.data.type === 'error') {
++        state.isComputing = false;
+         ev.sendCollatz_ErrorData( state, 'Something went wrong :(', stateTarget );
+     }
+ };
+diff --git a/ESmodules/ui/runProcessControls.js b/ESmodules/ui/runProcessControls.js
+--- a/ESmodules/ui/runProcessControls.js
++++ b/ESmodules/ui/runProcessControls.js
+@@
+     state.workerResult = [];
+     state.workerListLen = 0;
+     state.workerMaxNum = 0n;
+     state.errorCause = null;
++    state.isComputing = false;
+ 
+     SBSconfig.currentStepIndex = 0;
+     SBSconfig.isRunning = false;
+@@
+ 
+     runProcess_Elements.runButton.addEventListener('click', () => {
++        if (state.isComputing) return;
++
+         if (SBSconfig.isRunning) {
+             pauseSBS();
+             setRunButtonMode(false);

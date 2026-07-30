@@ -24,3 +24,19 @@ export function getAllToogles() { return TUMBLERS; }
 // SPEED STATE
 export function getSpeedState() { return speedState; }
 export function setSpeedState(patch) { Object.assign(speedState, patch); }
+
+// RESET for a new session
+export function resetSBS() {
+  const initialSBSconfig = {
+    currentStepIndex: 0,
+    isRunning: false,
+    doneRunning: false,
+    visibleItems: [],
+    currentMaxNum: 0n,
+    currentBatch: [],    
+    batchStartIndex: 0,
+    batchEndIndex: 0,
+  };
+
+  Object.assign(SBSconfig, initialSBSconfig);
+}

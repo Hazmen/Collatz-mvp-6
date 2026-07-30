@@ -38,9 +38,33 @@ export function sendSBS_Data(item, data, target, startIndex, endIndex) {
 
     const SBSData_BatchEvent = new CustomEvent('sbs_batch', {
         detail: {
-            status: 'batch'
+            status: 'batch',
+            batch: data,
+            startIndex,
+            endIndex
         }
     });
     
     target.dispatchEvent(SBSData_BatchEvent);
 };
+
+export function sendSBS_DoneEvent(target) {
+    const SBSDoneEvent = new CustomEvent('sbs_done', {
+        detail: {
+            status: 'done'
+        }
+    });
+
+    target.dispatchEvent(SBSDoneEvent);
+};
+
+export function sendSBS_ClearEvent(target) {
+    const SBSClearEvent = new CustomEvent('sbs_clear', {
+        detail: {
+            status: 'clear'
+        }
+    });
+
+    target.dispatchEvent(SBSClearEvent);
+};
+

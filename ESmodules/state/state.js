@@ -2,9 +2,12 @@ export const state = {
     // status: 'idle', // idle - untouched; computing - in process of adding new data; error - error; ready - modules are allowed to use data from there
     activeInputValue: 0n,
     inputError: false,
+
+    isComputing: false,
     workerResult: [],
     workerListLen: 0,
     workerMaxNum: 0n,
+
     errorCause: null,
     // ... and so on
 }
@@ -18,11 +21,15 @@ export const speedState = {
 
 export const SBSconfig = {
     currentStepIndex: 0,
+
     isRunning: false,
     doneRunning: false,
+
     visibleItems: [],
-    currentMaxNum: 0n, // this is the max number that is currently displayed in the lis
+
+    currentMaxNum: 0n, // the biggest num from displayed ones
     currentBatch: [],
+
     batchStartIndex: 0,
     batchEndIndex: 0,
     // ... and so on

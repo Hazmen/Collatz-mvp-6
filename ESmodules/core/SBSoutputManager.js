@@ -1,78 +1,109 @@
 import { state, stateTarget, speedState, SBSconfig } from "../state/state.js";
-import { sendSBS_Data } from "../state/events.js";
+import { sendSBS_Data, sendSBS_DoneEvent, sendSBS_ClearEvent } from "../state/events.js";
+import { resetSBS } from "../state/stateManager.js";
 
 // SBS = Step By Step 
 
-const SBSeventTarget = new EventTarget();
+export const SBSeventTarget = new EventTarget();
 
-export let currentBatch = []; // I decided to make it so even if batch size is 1, it still gets send as an array 
-export let resumeSBS = null;
+export let currentBatch = []; // I decided to make it so even if batch size is 1, it still gets send as an array
 
-export function SBSoutput() {
-    
-    let visibleMax = SBSconfig.currentMaxNum; // this is the max number that is displayed right now, in the middle of the SBS process.
-    let csi = SBSconfig.currentStepIndex;
-    // const addedBatch = []; <-- might not be necessary due to currentBatch 
-    
-    
-    const startSBS = () => {
-        if (!SBSconfig.isRunning) return;
-        
-        const workerResultLen = state.workerListLen;
-        const ms = speedState.intervalMs;
-        const bs = speedState.batchSize;
+let timerId = null;
 
-        if (csi >= workerResultLen) {
-            SBSconfig.isRunning = false;
-            SBSconfig.doneRunning = true;
-            return;
-        }
+// ------ EASY SWITCH FOR isRunning & doneRunning ------ \\
+function switchRunning(ans) {  SBSconfig.isRunning = ans === true; }
 
-        currentBatch = state.workerResult.slice(csi, csi + bs);
-        // let currentNumber = state.workerResult[csi]; <-- might be the wrong way to do this
-        let currentNumber = currentBatch[currentBatch.length - 1]; // get the last number in the batch
-        
-        if (currentNumber === undefined) {
-            console.error('Index overflow:', csi);
-            SBSconfig.isRunning = false;
-            return;
-        }
+function Is_Done_Running(is, done) {
+    SBSconfig.isRunning = is;
+    SBSconfig.doneRunning = done;
+}
 
-        SBSconfig.visibleItems.push(...currentBatch);
-        // addedBatch.push(...currentBatch);
-
-        // if (visibleMax === null || currentNumber > visibleMax) { // oh shoot, it only checks if the last number in the batch is 
-        //     visibleMax = currentNumber;                          // greater than the current max, not all numbers in the batch.
-        //     SBSconfig.currentyDisplayedMaxNum = visibleMax;      // I need to check all numbers in the batch to find the max（；´д｀）ゞ
-        // }
-
-        // const batchMax = Math.max(...currentBatch); <-- Doesn't work with BigInt
-        for (let i = 0; i < currentBatch.length; i++) {
-            if (visibleMax === 0n || currentBatch[i] > visibleMax) {
-                visibleMax = currentBatch[i];
-            }
-        }
-
-        
-        csi = csi + currentBatch.length;
-        
-        SBSconfig.batchStartIndex = csi;
-        SBSconfig.batchEndIndex = csi + currentBatch.length - 1;
-
-        sendSBS_Data(SBSconfig, currentBatch, SBSeventTarget, SBSconfig.batchStartIndex, SBSconfig.batchEndIndex);
-
-        setTimeout(() => {
-            startSBS()
-            const ms = speedState.intervalMs;
-            const bs = speedState.batchSize;
-            console.log('ITS WORKIIIINGGGG');
-        }, ms);
+// ------ FINISH & CLEAR ------ \\
+export function clearSBSTimer() {
+    if (timerId !== null) {
+        clearTimeout(timerId);
+        timerId = null;
     }
+}
 
-    resumeSBS = startSBS;
+export function finishSBS() {
+    clearSBSTimer();
+    Is_Done_Running(false, true);
+    sendSBS_DoneEvent(SBSeventTarget);
+}
 
-    stateTarget.addEventListener('collatz_done', () => {
-        startSBS();
-    });
+// ------ SKIP ALL REMAINING ------ \\
+export function skipAllRemaining() {
 
-};
+}
+
+// ------ PAUSE & RESUME ------ \\
+export function resumeSBS() {
+    if (SBSconfig.doneRunning) return;
+    if (state.workerResult.length === 0) return;
+
+    clearSBSTimer();
+    switchRunning(false);
+    runSBSTick();
+}
+
+export function pauseSBS() {
+    switchRunning(false);
+    clearSBSTimer();
+}
+
+// ------ START ------ \\
+export function startSBS() {
+    clearSBSTimer();
+    resetSBS();
+    Is_Done_Running(true, false);
+    runSBSTick();
+}
+
+// ------ ONE TICK ------ \\
+function runSBSTick() {
+
+    // ------ GUARD: STOP IF PAUSED ------ \\
+    if (!SBSconfig.isRunning) return;
+
+    // ------ PREPARE TICK DATA ------ \\
+    const workerResultLen = state.workerResult.length;                   
+    const batchSize = Math.max(1, Number(speedState.batchSize) || 1);    /* guard against 0/NaN */
+    const startIndex = SBSconfig.currentStepIndex;
+
+    // ------ EXIT IF ALL DATA PROCESSED ------ \\
+    if (startIndex >= workerResultLen) { finishSBS(); return; }
+
+    // ------ SLICE CURRENT BATCH ------ \\
+    currentBatch = state.workerResult.slice(startIndex, startIndex + batchSize);
+    if (currentBatch.length === 0) { finishSBS(); return; }             /* empty slice = done */
+
+    // ------ RENDER BATCH ------ \\
+    SBSconfig.visibleItems.push(...currentBatch);
+
+    // ------ TRACK MAXIMUM VALUE ------ \\
+    for (let i = 0; i < currentBatch.length; i++) {                      
+        if (SBSconfig.currentMaxNum === 0n || currentBatch[i] > SBSconfig.currentMaxNum) {
+            SBSconfig.currentMaxNum = currentBatch[i];
+        }
+    }  
+
+    // ------ UPDATE STEP INDEX ------ \\
+    const endIndex = startIndex + currentBatch.length - 1;
+    SBSconfig.currentStepIndex = startIndex + currentBatch.length;       /* move forward */
+
+    // ------ DISPATCH DATA TO UI ------ \\
+    sendSBS_Data(SBSconfig, currentBatch, startIndex, endIndex); /* this is Data of ONE current tick */
+
+    // ------ EXIT IF THIS WAS THE LAST BATCH ------ \\
+    if (SBSconfig.currentStepIndex >= workerResultLen) { finishSBS(); return; }
+
+    // ------ SCHEDULE NEXT TICK ------ \\
+    const interValMs = Math.max(0, Number(speedState.intervalMs) || 0);
+    timerId = setTimeout(() => {
+        timerId = null;
+        runSBSTick();
+    }, intervalMs);
+}
+
+

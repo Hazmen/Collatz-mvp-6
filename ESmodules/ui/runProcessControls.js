@@ -11,7 +11,16 @@ export function RunSequenceCalc() {
             //  For the future -> ErrorWindowAppend();
             return; // exit the function if input is invalid
         } 
-        // IF THE INPUT IS VALID, THEN PROCEED WITH THE FOLLOWING LOGIC
+
+        // SBS regulating
+        if (state.isComputing) return;
+
+        if (SBSconfig.isRunning) {
+            pauseSBS();
+            setRunButtonMode(false)
+        }
+
+        // IF THE INPUT IS VALID, PROCEED WITH THE FOLLOWING LOGIC
         else {
             // setting activeInputValue
             setStateValue('activeInputValue', BigInt(mainInputField.value));
