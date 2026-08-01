@@ -1,5 +1,3 @@
-import { stateTarget, state } from "./state.js";
-
 export function sendCollatz_MainData(item, st, data) {
     item[st].push(...data.data);
 };
@@ -7,6 +5,7 @@ export function sendCollatz_MainData(item, st, data) {
 export function sendCollatz_SecondaryData(item, max, length, target) {
     item.workerMaxNum = max;
     item.workerListLen = length;
+    item.hasResult = true;
 
     const CollatzData_DoneEvent = new CustomEvent('collatz_done', {
         detail: {
@@ -68,16 +67,5 @@ export function sendSBS_ClearEvent(target) {
     target.dispatchEvent(SBSClearEvent);
 };
 
-export function sendSBS_SkipEvent(target, data) {
-    item.currentBatch = data;
 
-    const SBSkipEvent = new CustomEvent('sbs_skip', {
-        detail: {
-            status: 'skipped',
-            batch: data
-        }
-    });
-
-    target.dispatchEvent(SBSkipEvent);
-}
 

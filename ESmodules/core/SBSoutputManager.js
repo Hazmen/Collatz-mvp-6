@@ -1,5 +1,5 @@
 import { state, stateTarget, speedState, SBSconfig } from "../state/state.js";
-import { sendSBS_Data, sendSBS_DoneEvent, sendSBS_ClearEvent, sendSBS_SkipEvent } from "../state/events.js";
+import { sendSBS_Data, sendSBS_DoneEvent, sendSBS_ClearEvent } from "../state/events.js";
 import { resetSBS } from "../state/stateManager.js";
 
 // SBS = Step By Step 
@@ -34,25 +34,35 @@ export function finishSBS() {
 
 // ------ SKIP ALL REMAINING ------ \\
 export function skipSBS() {
-    if (SBSconfig.doneRunning) return;
 
-    pauseSBS();
-    switchRunning(false);
+    // ------ GUARD: ALREADY DONE ------ \\
+    if (SBSconfig.doneRunning) return;                          /* nothing to skip if already finished */
 
-    const workerResultLen = state.workerResult.length; 
-    // const startIndex = SBSconfig.currentStepIndex;
+    // ------ PAUSE TICK LOOP FIRST ------ \\
+    pauseSBS();                                                 /* stop the timer before jumping to the end */
 
-    currentBatch = state.workerResult.slice(SBSconfig.currentStepIndex, SBSconfig.currentStepIndex + workerResultLen);
-    SBSconfig.visibleItems.push(...currentBatch);
+    // ------ PREPARE SKIP DATA ------ \\
+    const workerResultLen = state.workerResult.length;
+    const startIndex = SBSconfig.currentStepIndex;              /* first not-yet-shown index */
 
-    SBSconfig.currentMaxNum = state.workerMaxNum;
+    // ------ EXIT IF NOTHING LEFT TO SHOW ------ \\
+    if (startIndex >= workerResultLen) { finishSBS(); return; } /* everything already rendered */
 
-    // const endIndex = startIndex + currentBatch.length - 1;
-    // SBSconfig.currentStepIndex = startIndex + currentBatch.length;
+    // ------ TAKE ALL REMAINING ITEMS IN ONE BATCH ------ \\
+    currentBatch = state.workerResult.slice(startIndex);        /* from current position to the end */
+    SBSconfig.visibleItems.push(...currentBatch);               /* show them all at once */
 
-    sendSBS_SkipEvent(SBSeventTarget, currentBatch);
+    // ------ TRACK MAXIMUM VALUE ------ \\
+    SBSconfig.currentMaxNum = state.workerMaxNum;               /* max is already known from worker */
 
-    finishSBS();
+    // ------ UPDATE STEP INDEX ------ \\
+    const endIndex = workerResultLen - 1;
+    SBSconfig.currentStepIndex = workerResultLen;               /* invariant: shown == length */
+
+    // ------ DISPATCH SKIP DATA TO UI ------ \\
+    sendSBS_Data(SBSconfig, currentBatch, SBSeventTarget, startIndex, endIndex); /* this is Data of ONE current tick */
+
+    finishSBS();                                                /* mark done and notify the UI */
 }
 
 // ------ PAUSE & RESUME ------ \\
@@ -61,7 +71,7 @@ export function resumeSBS() {
     if (state.workerResult.length === 0) return;
 
     clearSBSTimer();
-    switchRunning(false);
+    switchRunning(true);
     runSBSTick();
 }
 
@@ -76,6 +86,13 @@ export function startSBS() {
     resetSBS();
     Is_Done_Running(true, false);
     runSBSTick();
+}
+
+// ------ ENTRY POINT: connect worker completion to SBS start ------ \\
+export function SBSoutput() {
+    stateTarget.addEventListener('collatz_done', () => {
+        startSBS();
+    });
 }
 
 // ------ ONE TICK ------ \\
@@ -111,13 +128,13 @@ function runSBSTick() {
     SBSconfig.currentStepIndex = startIndex + currentBatch.length;       /* move forward */
 
     // ------ DISPATCH DATA TO UI ------ \\
-    sendSBS_Data(SBSconfig, currentBatch, startIndex, endIndex); /* this is Data of ONE current tick */
+    sendSBS_Data(SBSconfig, currentBatch, SBSeventTarget, startIndex, endIndex); /* this is Data of ONE current tick */
 
     // ------ EXIT IF THIS WAS THE LAST BATCH ------ \\
     if (SBSconfig.currentStepIndex >= workerResultLen) { finishSBS(); return; }
 
     // ------ SCHEDULE NEXT TICK ------ \\
-    const interValMs = Math.max(0, Number(speedState.intervalMs) || 0);
+    const intervalMs = Math.max(0, Number(speedState.intervalMs) || 0);
     timerId = setTimeout(() => {
         timerId = null;
         runSBSTick();

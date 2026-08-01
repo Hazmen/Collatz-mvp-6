@@ -1,14 +1,5 @@
 import { state, TUMBLERS, speedState, SBSconfig } from "./state.js";
 
-export function toReset() {
-    // terminateWorker();  // TODO: убить текущий воркер
-    // clearInterval(timer); // TODO: убить таймер вывода
-    SBSconfig.visibleItems = [];
-    Object.assign(state, {
-        // REMAKE SOON!
-    });
-  }
-
 // STATE 
 export function getState() { return state; }
 export function getSpecificState(obj) { return state[obj]; }
@@ -26,6 +17,21 @@ export function getSpeedState() { return speedState; }
 export function setSpeedState(patch) { Object.assign(speedState, patch); }
 
 // RESET for a new session
+export function resetState() {
+  const initialStateConfig = {
+    activeInputValue: 0n,
+    inputError: false,
+    isComputing: false,
+    hasResult: false,
+    workerResult: [],
+    workerListLen: 0,
+    workerMaxNum: 0n,
+    errorCause: null,
+  };
+  
+  Object.assign(state, initialStateConfig);
+}
+
 export function resetSBS() {
   const initialSBSconfig = {
     currentStepIndex: 0,
@@ -33,7 +39,7 @@ export function resetSBS() {
     doneRunning: false,
     visibleItems: [],
     currentMaxNum: 0n,
-    currentBatch: [],    
+    currentBatch: [],
     batchStartIndex: 0,
     batchEndIndex: 0,
   };

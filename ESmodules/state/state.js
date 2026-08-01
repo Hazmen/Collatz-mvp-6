@@ -4,6 +4,7 @@ export const state = {
     inputError: false,
 
     isComputing: false,
+    hasResult: false,
     workerResult: [],
     workerListLen: 0,
     workerMaxNum: 0n,

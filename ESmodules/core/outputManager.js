@@ -1,11 +1,14 @@
-import { sendSBS_ClearEvent } from '../state/events.js'
-import { resetSBS } from '../state/stateManager.js';
-import { setRunButtonMode } from '../ui/playButtonSVG.js';
+import { state, SBSconfig } from '../state/state.js';
 
-export const outputTarget = new EventTarget();
+// Функции сброса сессии (resetSession, resetOutputOnly, resetState, resetSBS)
+// переехали в единый файл: ./resetManager.js
 
-export function resetOutputSession() {
-    resetSBS();
-    sendSBS_ClearEvent(outputTarget);
-    setRunButtonMode(false);
+export const outputManagerEvTarget = new EventTarget();
+
+export function canReset() {
+    return !state.isComputing;
+}
+
+export function canResume() {
+    return state.hasResult && !SBSconfig.doneRunning && SBSconfig.currentStepIndex < state.workerResult.length;
 }
