@@ -52,6 +52,9 @@ export function skipSBS() {
     currentBatch = state.workerResult.slice(startIndex);        /* from current position to the end */
     SBSconfig.visibleItems.push(...currentBatch);               /* show them all at once */
 
+    // ------ SET Visible Items Length ------ \\
+    SBSconfig.visibleItemsLen = state.workerListLen;
+
     // ------ TRACK MAXIMUM VALUE ------ \\
     SBSconfig.currentMaxNum = state.workerMaxNum;               /* max is already known from worker */
 
@@ -115,6 +118,9 @@ function runSBSTick() {
 
     // ------ RENDER BATCH ------ \\
     SBSconfig.visibleItems.push(...currentBatch);
+
+    // ------ SET Visible Items Length ------ \\
+    SBSconfig.visibleItemsLen = SBSconfig.visibleItems.length;
 
     // ------ TRACK MAXIMUM VALUE ------ \\
     for (let i = 0; i < currentBatch.length; i++) {                      

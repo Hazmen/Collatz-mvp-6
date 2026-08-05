@@ -4,7 +4,7 @@ import { workerManager_Recieve } from "../workers/workerManager.js";
 import { setRunButtonMode } from "./playButtonSVG.js";
 import { state, SBSconfig } from "../state/state.js";
 import { pauseSBS, resumeSBS, skipSBS, SBSeventTarget, startSBS } from "../core/SBSoutputManager.js";
-import { resetSession } from "../core/resetManager.js";
+import { resetOutputOnly, resetSession } from "../core/resetManager.js";
 
 // ------ ENTRY POINT: WIRE UP ALL RUN/SKIP/RESET CONTROLS ------ \\
 export function RunSequenceCalc() {
@@ -45,6 +45,8 @@ export function RunSequenceCalc() {
 
         // ------ SAME NUMBER, ALREADY FINISHED: REPLAY WITHOUT RE-COMPUTING ------ \\
         if (inputMatchesActive && SBSconfig.doneRunning === true) {
+            resetOutputOnly();                            /* clear the output session */
+            resetSession();                           /* bruh why does this literally break it */
             startSBS();
             setRunButtonMode(true);
             return;

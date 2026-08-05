@@ -27,6 +27,7 @@ export const SBSconfig = {
     doneRunning: false,
 
     visibleItems: [],
+    visibleItemsLen: 0,
 
     currentMaxNum: 0n, // the biggest num from displayed ones
     currentBatch: [],
@@ -58,6 +59,13 @@ export const TUMBLERS = {
     // ... and so on
 }
 
+export const STATISTICS = {
+    
+}
+
+export const SBS_STATISTICS = {
+
+}
 
 
 
