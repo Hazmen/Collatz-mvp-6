@@ -9,6 +9,17 @@ class SpeedController extends HTMLElement {
 
         this.shadowRoot.innerHTML = `
         <style>
+            :host {
+                display: block;
+                margin-top: 24px;
+                transition: opacity 250ms ease, transform 250ms ease;
+                transform-origin: top center;
+            }
+            :host(.is-hidden) {
+                opacity: 0;
+                transform: scaleY(0.96);
+                pointer-events: none;
+            }
             .speed-controller {
                 width: 100%;
                 max-width: 24rem;
@@ -22,17 +33,28 @@ class SpeedController extends HTMLElement {
                 flex-direction: column;
                 gap: 1rem;
                 user-select: none;
-                margin-top: 24px;
             }
 
             .controller-section {
                 display: flex;
                 flex-direction: column;
                 gap: 1rem;
+                overflow: hidden;
+                max-height: 420px;
+                opacity: 1;
+                transition:
+                    max-height 320ms cubic-bezier(0.4, 0, 0.2, 1),
+                    opacity 220ms ease,
+                    transform 260ms cubic-bezier(0.4, 0, 0.2, 1);
+                transform: scaleY(1);
+                transform-origin: top center;
             }
 
-            .controller-section[hidden] {
-                display: none;
+            .controller-section.is-collapsed {
+                max-height: 0;
+                opacity: 0;
+                transform: scaleY(0.92);
+                pointer-events: none;
             }
         
             .speed-preset,
@@ -313,33 +335,86 @@ class SpeedController extends HTMLElement {
         updateSpeedDisplay();
         updateBatchDisplay();
 
+        this._hostHideTimer = null;
+
         this.handleOutputModeChange = (event) => {
             this.applyMode(event.detail.selected_mode);
         };
         outputMode_EventTarget.addEventListener('output_change', this.handleOutputModeChange);
 
-        this.applyMode(state.outputMode);
-        this.setBatchSectionVisible(false);
+        // начальное состояние без анимации (instant -> скрыт)
+        this.classList.toggle('is-hidden', state.outputMode === 'instant');
+        if (state.outputMode === 'instant') this.style.display = 'none';
+        this._toggleSection(this.speedSection, state.outputMode === 'auto', false);
+        this._toggleSection(this.batchSection, false, false);
+        // после первого рендера с задержкой применим корректную анимацию для текущего режима,
+        // но batch остается скрытым по требованию "сразу отключи"
+        // дальнейшие переключения уже будут с анимацией
 
         window.__speedState = speedState;
     }
 
     disconnectedCallback() {
         outputMode_EventTarget.removeEventListener('output_change', this.handleOutputModeChange);
+        if (this._hostHideTimer) clearTimeout(this._hostHideTimer);
+    }
+
+    _setHostVisible(isVisible) {
+        if (isVisible) {
+            if (this._hostHideTimer) { clearTimeout(this._hostHideTimer); this._hostHideTimer = null; }
+            this.style.display = '';
+            // форсируем reflow перед снятием класса чтобы переход сработал
+            void this.offsetWidth;
+            this.classList.remove('is-hidden');
+        } else {
+            if (this.classList.contains('is-hidden')) return;
+            this.classList.add('is-hidden');
+            if (this._hostHideTimer) clearTimeout(this._hostHideTimer);
+            this._hostHideTimer = setTimeout(() => {
+                if (this.classList.contains('is-hidden')) this.style.display = 'none';
+                this._hostHideTimer = null;
+            }, 260);
+        }
+    }
+
+    _toggleSection(section, show, animate = true) {
+        if (!section) return;
+        if (!animate) {
+            section.style.transition = 'none';
+            section.classList.toggle('is-collapsed', !show);
+            void section.offsetHeight;
+            section.style.transition = '';
+            return;
+        }
+        section.classList.toggle('is-collapsed', !show);
     }
 
     setSpeedSectionVisible(isVisible) {
-        this.speedSection.hidden = !isVisible;
+        this._toggleSection(this.speedSection, isVisible, true);
     }
 
     setBatchSectionVisible(isVisible) {
-        this.batchSection.hidden = !isVisible;
+        this._toggleSection(this.batchSection, isVisible, true);
     }
 
     applyMode(mode) {
-        this.style.display = mode === 'instant' ? 'none' : '';
-        this.setSpeedSectionVisible(mode === 'auto');
-        this.setBatchSectionVisible(mode === 'auto' || mode === 'manual');
+        const isInstant = mode === 'instant';
+        const isAuto = mode === 'auto';
+        const isManual = mode === 'manual';
+
+        this._setHostVisible(!isInstant);
+        // whole controller stretch: задержка 40ms чтобы хост успел раскрыться
+        const delay = !isInstant && this.classList.contains('is-hidden') ? 60 : 0;
+
+        if (delay) {
+            setTimeout(() => {
+                this._toggleSection(this.speedSection, isAuto, true);
+                this._toggleSection(this.batchSection, isAuto || isManual, true);
+            }, delay);
+        } else {
+            this._toggleSection(this.speedSection, isAuto, true);
+            this._toggleSection(this.batchSection, isAuto || isManual, true);
+        }
     }
 }
 
