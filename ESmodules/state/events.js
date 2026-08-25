@@ -67,5 +67,17 @@ export function sendSBS_ClearEvent(target) {
     target.dispatchEvent(SBSClearEvent);
 };
 
+// -------------- OUTPUT MODE CHANGE EVENT -------------- \\
+export function sendOutputMode_ChangeEvent(target, mode) {
+    const OutputChangeEvent = new CustomEvent('output_change', {
+        detail: {
+            status: 'changed',
+            selected_mode: mode
+        }
+    });
+
+    target.dispatchEvent(OutputChangeEvent);
+    console.log('Output Mode Changed');
+}
 
 

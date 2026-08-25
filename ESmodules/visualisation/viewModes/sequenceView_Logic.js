@@ -58,7 +58,14 @@ export function txtListObj_create(parent, index, number) {
     if (parent) {
         parent.appendChild(txtList_el);
     }
-};
 
+    // ------ HIGHLIGHT NEW ROW (indigo flash 500ms) ------ \\
+    txtList_el.classList.add('is-new');
+    txtList_el.addEventListener('animationend', () => {
+        txtList_el.classList.remove('is-new');
+    }, { once: true });
+
+    return txtList_el;
+};
 
 

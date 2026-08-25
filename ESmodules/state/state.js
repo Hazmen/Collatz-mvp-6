@@ -1,7 +1,8 @@
 export const state = {
-    // status: 'idle', // idle - untouched; computing - in process of adding new data; error - error; ready - modules are allowed to use data from there
     activeInputValue: 0n,
     inputError: false,
+
+    outputMode: 'instant',
 
     isComputing: false,
     hasResult: false,

@@ -8,6 +8,9 @@ export let mainInputField = $$$('number-input'); // INPUT field
 export const runButton = $('.proc-run');
 export const resetButton = $('.proc-reset');
 export const skipButton = $('.proc-skip'); 
+export const nextButton = $('.proc-showNext');
+export const backButton = $('.proc-delLast');
+
 
 
 // input controls
@@ -23,7 +26,7 @@ export const txtList_sidebar = $$$('seqList_sidebar_btn');
     
 // idk i need style values for smth
 export let seqListObj_Font = $('.txtList-obj_font');
-
+export const seqListContainer = $('.sequence-list-container');
 
 
 // !! BATCHES OF ELEMENTS !! // 
@@ -32,7 +35,10 @@ export let seqListObj_Font = $('.txtList-obj_font');
 export const runProcess_Elements = {
     runButton,
     resetButton,
-    skipButton
+    skipButton,
+
+    nextButton,
+    backButton
 }
 
 // input Controls 
@@ -45,7 +51,8 @@ export const inputControls_Elements = {
 // Sequence List batch
 export const seqList_Elements = {
     txtList,
-    txtList_sidebar
+    txtList_sidebar,
+    seqListContainer
 }
 
 

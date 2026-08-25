@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="neon-violet">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Segmented Control Showcase</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-main: #0a0a0a;
+            --control-bg: #000000;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --slider-bg: #ffffff;
+            --text-main: #ffffff;
+            --text-invert: #000000;
+            --theme-text: #ffffff;
+            --accent-glow: rgba(255, 255, 255, 0.1);
+        }
+
+        [data-theme="neon-violet"] {
+            --bg-main: #131622;
+            --control-bg: #1a1e2e;
+            --border-color: rgba(139, 92, 246, 0.15);
+            --slider-bg: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            --text-main: #ffffff;
+            --text-invert: #ffffff;
+            --theme-text: #ffffff;
+            --accent-glow: rgba(139, 92, 246, 0.25);
+        }
+
+        [data-theme="light"] {
+            --bg-main: #f1f5f9;
+            --control-bg: #ffffff;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --slider-bg: #0f172a;
+            --text-main: #0f172a;
+            --text-invert: #ffffff;
+            --theme-text: #0a0a0a;
+            --accent-glow: rgba(15, 23, 42, 0.08);
+        }
+
+        body {
+            background: var(--bg-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            transition: background 0.4s ease;
+        }
+
+        .theme-switcher {
+            position: absolute;
+            top: 24px;
+            display: flex;
+            gap: 8px;
+            background: var(--control-bg);
+            border: 1px solid var(--border-color);
+            padding: 6px;
+            border-radius: 9999px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .theme-btn {
+            background: transparent;
+            border: none;
+            color: var(--theme-text);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.25s ease;
+        }
+
+        .theme-btn.active,
+        .theme-btn:hover {
+            opacity: 1;
+            background: var(--accent-glow);
+            color: var(--theme-text);
+        }
+
+        .segmented-control {
+            position: relative;
+            background: var(--control-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 9999px;
+            height: 58px;
+            width: 340px;
+            padding: 5px;
+            user-select: none;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px var(--accent-glow);
+            transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .slider {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            height: calc(100% - 10px);
+            width: calc(50% - 5px);
+            background: var(--slider-bg);
+            border-radius: 9999px;
+            pointer-events: none;
+            z-index: 1;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            will-change: left, width;
+        }
+
+        .labels {
+            position: absolute;
+            inset: 5px;
+            display: flex;
+            z-index: 2;
+        }
+
+        .clip-mask {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            height: calc(100% - 10px);
+            width: calc(50% - 5px);
+            overflow: hidden;
+            pointer-events: none;
+            border-radius: 9999px;
+            z-index: 3;
+            will-change: left, width;
+        }
+
+        .labels-invert {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            display: flex;
+            will-change: left;
+        }
+
+        .labels-invert .option span,
+        .labels-invert .sbs-single {
+            color: var(--text-invert);
+        }
+
+        .option {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 9999px;
+            position: relative;
+        }
+
+        .labels-invert .option {
+            cursor: default;
+        }
+
+        .option input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .option span {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: var(--text-main);
+            white-space: nowrap;
+        }
+
+        .sbs-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .sbs-single {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+            cursor: pointer;
+            border-radius: 9999px;
+            will-change: transform, opacity;
+        }
+
+        .labels-invert .sbs-single {
+            cursor: default;
+        }
+
+        .sbs-split {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            will-change: transform, opacity;
+        }
+
+        .labels-invert .sbs-split {
+            pointer-events: none !important;
+        }
+
+        .sbs-split .option {
+            flex: 1;
+        }
+
+        .divider {
+            width: 1px;
+            height: 35%;
+            background: var(--border-color);
+            opacity: 0;
+            flex-shrink: 0;
+            will-change: opacity;
+        }
+
+        .labels-invert .divider {
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        @media (max-width: 480px) {
+            .segmented-control {
+                height: 52px;
+                width: 290px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="theme-switcher">
+        <button class="theme-btn active" data-theme="neon-violet">Neon Violet</button>
+        <button class="theme-btn" data-theme="dark">Dark Minimal</button>
+        <button class="theme-btn" data-theme="light">Light</button>
+    </div>
+
+    <div class="segmented-control">
+        <div class="slider"></div>
+
+        <div class="labels">
+            <label class="option" data-value="instant">
+                <input type="radio" name="mode" value="instant" checked>
+                <span>Instant</span>
+            </label>
+
+            <div class="sbs-wrapper">
+                <div class="sbs-single">Step By Step</div>
+
+                <div class="sbs-split">
+                    <label class="option" data-value="auto">
+                        <input type="radio" name="mode" value="auto">
+                        <span>Auto</span>
+                    </label>
+                    
+                    <label class="option" data-value="manual">
+                        <input type="radio" name="mode" value="manual">
+                        <span>Manual</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="clip-mask">
+            <div class="labels-invert">
+                <label class="option" data-value="instant">
+                    <span>Instant</span>
+                </label>
+
+                <div class="sbs-wrapper">
+                    <div class="sbs-single">Step By Step</div>
+
+                    <div class="sbs-split">
+                        <label class="option" data-value="auto">
+                            <span>Auto</span>
+                        </label>
+                        
+                        <label class="option" data-value="manual">
+                            <span>Manual</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const control = document.querySelector('.segmented-control');
+        const slider = document.querySelector('.slider');
+        const clipMask = document.querySelector('.clip-mask');
+        const labels = document.querySelector('.labels');
+        const labelsInvert = document.querySelector('.labels-invert');
+
+        const instantOption = document.querySelector('.labels [data-value="instant"]');
+        const sbsSingle = document.querySelector('.labels .sbs-single');
+        const autoOption = document.querySelector('.labels [data-value="auto"]');
+        const manualOption = document.querySelector('.labels [data-value="manual"]');
+
+        const allSbsSingle = document.querySelectorAll('.sbs-single');
+        const allSbsSplit = document.querySelectorAll('.sbs-split');
+        const allDividers = document.querySelectorAll('.divider');
+
+        let state = localStorage.getItem('segmented-mode') || 'instant';
+        let expanded = state === 'auto' || state === 'manual';
+
+        // Смена тем
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                const theme = e.target.getAttribute('data-theme');
+                if (theme === 'dark') {
+                    document.documentElement.removeAttribute('data-theme');
+                } else {
+                    document.documentElement.setAttribute('data-theme', theme);
+                }
+            });
+        });
+
+        function syncInvertWidth() {
+            const innerWidth = labels.getBoundingClientRect().width;
+            labelsInvert.style.width = innerWidth + 'px';
+        }
+
+        function getSliderPos(target) {
+            const controlRect = control.getBoundingClientRect();
+            const padding = 5;
+            const innerWidth = controlRect.width - padding * 2;
+            const halfWidth = innerWidth / 2;
+            const quarterWidth = innerWidth / 4;
+
+            if (target === 'instant') {
+                return { left: padding, width: halfWidth };
+            }
+            if (target === 'auto') {
+                return { left: padding + halfWidth, width: quarterWidth };
+            }
+            return { left: padding + halfWidth + quarterWidth, width: quarterWidth };
+        }
+
+        /* Бесшовная анимация слайдера с синхронной траекторией */
+        function moveSliderTo(pos, animate) {
+            syncInvertWidth();
+            const padding = 5;
+            const invertLeft = -(pos.left - padding);
+
+            anime.remove([slider, clipMask, labelsInvert]);
+
+            if (animate) {
+                // Идеальная ультра-плавная кривая без разрывов кадров
+                const smoothEasing = 'cubicBezier(0.16, 1, 0.3, 1)';
+                const duration = 420;
+
+                anime({
+                    targets: [slider, clipMask],
+                    left: pos.left,
+                    width: pos.width,
+                    duration: duration,
+                    easing: smoothEasing
+                });
+
+                anime({
+                    targets: labelsInvert,
+                    left: invertLeft,
+                    duration: duration,
+                    easing: smoothEasing
+                });
+            } else {
+                slider.style.left = pos.left + 'px';
+                slider.style.width = pos.width + 'px';
+                clipMask.style.left = pos.left + 'px';
+                clipMask.style.width = pos.width + 'px';
+                labelsInvert.style.left = invertLeft + 'px';
+            }
+        }
+
+        function syncRadio() {
+            const radio = document.querySelector(`.labels input[value="${state}"]`);
+            if (radio) radio.checked = true;
+            localStorage.setItem('segmented-mode', state);
+        }
+
+        function applyState(animate) {
+            const pos = getSliderPos(state);
+
+            if (expanded) {
+                allSbsSingle.forEach(el => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'scale(0.85)';
+                    el.style.pointerEvents = 'none';
+                });
+                allSbsSplit.forEach(el => { el.style.opacity = '1'; el.style.transform = 'scale(1)'; });
+                sbsSingle.style.pointerEvents = 'none';
+                document.querySelector('.labels .sbs-split').style.pointerEvents = 'auto';
+                allDividers.forEach(el => el.style.opacity = '1');
+            } else {
+                allSbsSingle.forEach(el => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'scale(1)';
+                });
+                sbsSingle.style.pointerEvents = 'auto';
+                allSbsSplit.forEach(el => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'scale(0.95)';
+                    el.style.pointerEvents = 'none';
+                });
+                allDividers.forEach(el => el.style.opacity = '0');
+            }
+
+            moveSliderTo(pos, animate);
+            syncRadio();
+        }
+
+        function expandSBS(target, animate) {
+            expanded = true;
+            state = target;
+
+            anime.remove(allSbsSingle);
+            anime.remove(allSbsSplit);
+            anime.remove(allDividers);
+
+            if (animate) {
+                const easing = 'cubicBezier(0.16, 1, 0.3, 1)';
+
+                // Исчезновение основного текста без скачков
+                anime({
+                    targets: allSbsSingle,
+                    scale: 0.85,
+                    opacity: 0,
+                    duration: 220,
+                    easing: easing,
+                    begin: () => { sbsSingle.style.pointerEvents = 'none'; }
+                });
+
+                // Плавный заезд split-текста
+                anime({
+                    targets: allSbsSplit,
+                    opacity: 1,
+                    scale: 1,
+                    duration: 320,
+                    easing: easing,
+                    begin: () => {
+                        document.querySelector('.labels .sbs-split').style.pointerEvents = 'auto';
+                    }
+                });
+
+                // Появление разделителей
+                anime({
+                    targets: allDividers,
+                    opacity: 1,
+                    duration: 300,
+                    easing: easing
+                });
+
+                moveSliderTo(getSliderPos(state), true);
+            } else {
+                applyState(false);
+            }
+
+            syncRadio();
+        }
+
+        function collapseSBS(animate) {
+            expanded = false;
+            state = 'instant';
+
+            anime.remove(allSbsSingle);
+            anime.remove(allSbsSplit);
+            anime.remove(allDividers);
+
+            if (animate) {
+                const easing = 'cubicBezier(0.16, 1, 0.3, 1)';
+
+                anime({
+                    targets: allSbsSplit,
+                    opacity: 0,
+                    scale: 0.95,
+                    duration: 180,
+                    easing: easing,
+                    begin: () => {
+                        document.querySelector('.labels .sbs-split').style.pointerEvents = 'none';
+                    }
+                });
+
+                anime({
+                    targets: allDividers,
+                    opacity: 0,
+                    duration: 150,
+                    easing: easing
+                });
+
+                anime({
+                    targets: allSbsSingle,
+                    scale: 1,
+                    opacity: 1,
+                    duration: 320,
+                    easing: easing,
+                    begin: () => { sbsSingle.style.pointerEvents = 'auto'; }
+                });
+
+                moveSliderTo(getSliderPos('instant'), true);
+            } else {
+                applyState(false);
+            }
+
+            syncRadio();
+        }
+
+        function selectSbsChild(target) {
+            if (state === target) return;
+            state = target;
+            moveSliderTo(getSliderPos(target), true);
+            syncRadio();
+        }
+
+        instantOption.addEventListener('click', () => {
+            if (state === 'instant') return;
+            collapseSBS(true);
+        });
+
+        sbsSingle.addEventListener('click', (e) => {
+            const rect = sbsSingle.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const target = x < rect.width / 2 ? 'auto' : 'manual';
+            expandSBS(target, true);
+        });
+
+        autoOption.addEventListener('click', () => selectSbsChild('auto'));
+        manualOption.addEventListener('click', () => selectSbsChild('manual'));
+
+        const resizeObserver = new ResizeObserver(() => {
+            moveSliderTo(getSliderPos(state), false);
+        });
+        resizeObserver.observe(control);
+
+        if (expanded) {
+            expandSBS(state, false);
+        } else {
+            applyState(false);
+        }
+    </script>
+</body>
+
+</html>

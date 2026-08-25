@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @source "../../../index.html";
+@source "../../../test.html";
 
 @utility inp-cont {
   border-radius: var(--radius-2xl, 1rem);
@@ -89,6 +90,15 @@
   }
 }
 
+@keyframes txtList-flash {
+  0% { background-color: rgba(99, 102, 241, 0.22); }
+  100% { background-color: transparent; }
+}
+
+.txtList-obj.is-new {
+  animation: txtList-flash .7s ease forwards;
+}
+
 @utility txtList-obj_item {
   display: flex;
   flex-direction: row;
@@ -170,6 +180,16 @@
   opacity: 1;
   transform: translateX(0);
 }
+
+@utility locked {
+  pointer-events: none;
+  opacity: .5;
+}
+
+@utility lockable {
+  transform: opacity .3s ease;
+}
+
 
 
 

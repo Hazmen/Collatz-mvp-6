@@ -9,15 +9,8 @@ import { resetOutputOnly, resetSession } from "../core/resetManager.js";
 // ------ ENTRY POINT: WIRE UP ALL RUN/SKIP/RESET CONTROLS ------ \\
 export function RunSequenceCalc() {
 
-    // ------ AUTO-RETURN BUTTON WHEN OUTPUT FINISHES ------ \\
-    /* when the output finishes by itself (normal way or via skip) — */
-    /* the button must return to "Run" without the user's help       */
-    SBSeventTarget.addEventListener('sbs_done', () => {
-        setRunButtonMode(false);
-    });
-
-    // ------ RUN / PAUSE / RESUME BUTTON ------ \\
-    runProcess_Elements.runButton.addEventListener('click', () => {
+    // внутри RunSequenceCalc()
+    function startRunProcess() { 
         // ------ PRE-CHECK LAYER: VALIDATE NEW INPUT ------ \\
         /* this layer runs only when starting a brand-new calculation */
 
@@ -46,8 +39,15 @@ export function RunSequenceCalc() {
         // ------ SAME NUMBER, ALREADY FINISHED: REPLAY WITHOUT RE-COMPUTING ------ \\
         if (inputMatchesActive && SBSconfig.doneRunning === true) {
             resetOutputOnly();                            /* clear the output session */
-            resetSession();                           /* bruh why does this literally break it */
+            setRunButtonMode(true);
             startSBS();
+            return;
+        }
+
+        if (SBSconfig.doneRunning === true && !inputMatchesActive) {
+            resetSession();           
+            setStateValue('activeInputValue', BigInt(mainInputField.value));
+            workerManager_Recieve(getSpecificState('activeInputValue'));
             setRunButtonMode(true);
             return;
         }
@@ -73,24 +73,47 @@ export function RunSequenceCalc() {
         workerManager_Recieve(getSpecificState('activeInputValue'));
         /* Worker Manager is going to send our Input Value to Worker :D */
 
-        setRunButtonMode(true);                         /* reflect running state on the button */
+        setRunButtonMode(true);     
+    }  
+
+    runProcess_Elements.runButton.addEventListener('click', startRunProcess);
+    document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && !e.repeat) { e.preventDefault(); startRunProcess(); }
+    });
+
+    // ------ AUTO-RETURN BUTTON WHEN OUTPUT FINISHES ------ \\
+    /* when the output finishes by itself (normal way or via skip) — */
+    /* the button must return to "Run" without the user's help       */
+    SBSeventTarget.addEventListener('sbs_done', () => {
+        setRunButtonMode(false);
     });
 
     // ------ SKIP BUTTON ------ \\
-    runProcess_Elements.skipButton.addEventListener('click', () => {
+    function skipProcess() {
         if (state.isComputing) return;                  /* don't skip while worker is busy */
         /* nothing to skip: never started, nothing shown yet and no data at all */
         if (!SBSconfig.isRunning && SBSconfig.currentStepIndex === 0 && !SBSconfig.doneRunning && state.workerResult.length === 0) return;
 
         skipSBS();                                      /* show all remaining items at once */
         setRunButtonMode(false);
+    }
+
+
+    runProcess_Elements.skipButton.addEventListener('click', () => skipProcess);
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'KeyF' && !e.repeat) skipProcess(); 
     });
 
     // ------ RESET BUTTON ------ \\
-    runProcess_Elements.resetButton.addEventListener('click', () => {
+    function resetProcess() {
         /* don't reset while worker is counting — nobody would stop it */
         if (state.isComputing) return;
-
+    
         resetSession();                            /* clear the output session */
+    }
+
+    runProcess_Elements.resetButton.addEventListener('click', () => resetProcess);
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'KeyR' && !e.repeat) resetProcess(); 
     });
 }

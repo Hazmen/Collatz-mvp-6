@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Segmented Controls by Hazmen!!! :D</title>
+
+<!-- || -------- ALL OF THE CSS -------- || -->
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    min-height: 100vh;
+    background-color: #242f47;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    flex-direction: column;
+    gap: 2.5rem;
+    align-items: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.segmented-control {
+    position: relative;      /* якорь для всех абсолютных детей внутри */
+    background: #1a1e2e;     /* цвет "трека" переключателя */
+    border-radius: 9999px;   /* полная скругленность (капсула) */
+    height: 58px;
+    width: 340px;
+    padding: 5px;             /* отступ, чтобы слайдер не прилипал к краям */
+}
+
+.slider {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    height: calc(100% - 10px);
+    width: calc(50%-5px);
+    background: #fff;
+    border-radius: 999px;
+    z-index: 1;
+}
+
+.labels {
+    position: absolute;
+    inset: 5px;
+    display: flex;
+    z-index: 2;
+}
+
+.option {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+}
+
+.option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.option span & .spl-single span {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.spl-wrapper {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.spl-single {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #fff;
+    cursor: pointer;
+}
+
+.spl-split {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.spl-split .option {
+    flex: 1;
+}
+
+.clip-mask {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    height: calc(100% - 10px);
+    width: calc(50% - 5px);
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 3;
+}
+
+.labels-invert {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    display: flex;
+}
+
+.labels-invert .option span, .labels-invert .spl-single {
+    color: #000;
+}
+
+</style>
+</head>
+<body>
+
+<!-- || -------- ALL OF THE HTML -------- || -->
+<div class="segmented_control">
+    <div class="slider"></div>  <!-- this is that thing that follows whatever you pick -->
+    
+    <div class="labels">
+        <label class="option" data-value="instant">
+            <input type="radio" name="mode" value="instant" checked>
+            <span>Instant</span>
+        </label>
+
+        <div class="spl-wrapper">
+            <div class="spl-single"><span>Step By Step</span></div>
+
+            <div class="spl-split">
+                <label data-value="auto" class="option">
+                    <input type="radio" name="mode" value="auto">
+                    <span>Auto</span>
+                </label>
+
+                <label data-value="manual" class="option">
+                    <input type="radio" name="mode" value="manual">
+                    <span>Manual</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="clip-mask">
+        <label class="option" data-value="instant">
+            <input type="radio" name="mode" value="instant" checked>
+            <span>Instant</span>
+        </label>
+
+        <div class="spl-wrapper">
+            <div class="spl-single"><span>Step By Step</span></div>
+
+            <div class="spl-split">
+                <label data-value="auto" class="option">
+                    <span>Auto</span>
+                </label>
+
+                <label data-value="manual" class="option">
+                    <span>Manual</span>
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- || -------- ALL OF THE LOGIC -------- || -->
+<script>
+const control = document.querySelector('.segmented-control');
+const slider = document.querySelector('.slider');
+const clipMask = document.querySelector('.clip-mask');
+const labels = document.querySelector('.labels');
+const labelsInvert = document.querySelector('.labels-invert');
+
+const allSbsSingle = document.querySelectorAll('.spl-single');
+const allSbsSplit = document.querySelectorAll('.spl-split');
+
+let state = localStorage.getItem('segmented-mode') || 'instant';
+let expanded = state === 'auto' || state === 'manual';
+
+function getSliderPos(target) {
+    const controlRect = control.getBoundingClientRect();
+    const padding = 5;
+    const innerWidth = controlRect.width - padding * 2;
+    const halfWidth = innerWidth / 2;
+    const quarterWidth = innerWidth / 4;
+
+    if (target === 'instant') {
+        return {
+            left: padding,
+            width: halfWidth
+        };
+    }
+    if (target === 'auto') {
+        return {
+            left: padding += halfWidth,
+            width: quarterWidth
+        };
+    }
+
+    return {
+        left: padding + halfWidth + quarterWidth,
+        width: quarterWidth
+    };
+}
+
+function moveSliderTo(position, animate) {
+    syncInvertWidth();
+    const padding = 5;
+    const invertLeft = -(pos.left, padding);
+
+    anime.remove([slider, clipMask, labelsInvert]);
+
+    if (anime) {
+        anime({
+            targets: [slider, clipMask],
+            left: pos.left,
+            width: pos.width,
+            duration: 400,
+            easing: 'cubicBezier(0.785, 0.135, 0.15, 0.86)'
+        });
+
+        anime({
+            targets: labelsInvert,
+            left: invertLeft,
+            duration: 400,
+            easing: 'cubicBezier(0.785, 0.135, 0.15, 0.86)'
+        });
+    } else {
+        slider.style.left = pos.left + 'px';
+        slider.style.width = pos.width + 'px';
+        clipMask.style.left = pos.left + 'px';
+        clipMask.style.width = pos.width + 'px';
+        labelsInvert.style.left = invertLeft + 'px';
+    }
+}
+
+function expandSPL(target, animate) {
+    expanded = true;
+    state = target;
+
+    if (animate) {
+        const easing = 'cubicBezier(0.785, 0.135, 0.15, 0.86)';
+
+        anime({
+            targets: allSplSingle,
+            scale: 0.85,
+            opacity: 0,
+            duration: 200,
+            easing,
+            begin: () => { splSingle.style.pointerEvents = 'none' }
+        });
+
+        anime({
+            targets: allSplSplit,
+            opacity: 1,
+            scale: 1,
+            duration: 300,
+            easing,
+            begin: () => {
+                document.querySelector('.labels .spl-split').style.pointerEvents = 'auto';
+            }
+        });
+
+        anime({
+            targets: allDividers,
+            opacity: 1,
+            duration: 280,
+            easing
+        });
+
+        moveSliderTo(getSliderPos(state), true);
+    }
+
+    syncRadio();
+}
+
+
+</script>
+
+</body>
+</html>

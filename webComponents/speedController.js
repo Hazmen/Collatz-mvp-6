@@ -1,4 +1,5 @@
-import { speedState } from "../ESmodules/state/state.js";
+import { state, speedState } from "../ESmodules/state/state.js";
+import { outputMode_EventTarget } from "./outputModeController.js";
 
 class SpeedController extends HTMLElement {
     constructor() {
@@ -22,6 +23,16 @@ class SpeedController extends HTMLElement {
                 gap: 1rem;
                 user-select: none;
                 margin-top: 24px;
+            }
+
+            .controller-section {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .controller-section[hidden] {
+                display: none;
             }
         
             .speed-preset,
@@ -157,71 +168,75 @@ class SpeedController extends HTMLElement {
         </style>
         
         <div class="speed-controller">
-            <!-- Header -->
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:0 0.25rem;">
-                <span style="font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8;">
-                    Скорость вывода
-                </span>
-                <span class="speed-display" style="font-size:0.875rem; font-family:monospace; font-weight:bold; color:#a5b4fc; font-variant-numeric:tabular-nums; min-width:5rem; text-align:right;">
-                    Выкл
-                </span>
-            </div>
-        
-            <!-- Slider -->
-            <div style="display:flex; flex-direction:column; gap:0.25rem; padding:0 0.125rem;">
-                <input type="range" id="speed-slider" min="0" max="5000" value="0" step="10" class="speed-slider">
-                <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; font-family:monospace; padding:0 0.125rem; margin-top:0.125rem;">
-                    <span>Выкл</span>
-                    <span>1с</span>
-                    <span>2с</span>
-                    <span>3с</span>
-                    <span>4с</span>
-                    <span>5с</span>
+            <section id="speed-section" class="controller-section">
+                <!-- Header -->
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:0 0.25rem;">
+                    <span style="font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8;">
+                        Скорость вывода
+                    </span>
+                    <span class="speed-display" style="font-size:0.875rem; font-family:monospace; font-weight:bold; color:#a5b4fc; font-variant-numeric:tabular-nums; min-width:5rem; text-align:right;">
+                        Выкл
+                    </span>
                 </div>
-            </div>
-        
-            <!-- Preset buttons -->
-            <div style="display:flex; flex-wrap:wrap; gap:0.375rem; justify-content:center;">
-                <button data-ms="0" class="speed-preset active">Выкл</button>
-                <button data-ms="50" class="speed-preset">50ms</button>
-                <button data-ms="100" class="speed-preset">100ms</button>
-                <button data-ms="250" class="speed-preset">250ms</button>
-                <button data-ms="500" class="speed-preset">500ms</button>
-                <button data-ms="750" class="speed-preset">750ms</button>
-                <button data-ms="1000" class="speed-preset">1000ms</button>
-                <button data-ms="2000" class="speed-preset">2000ms</button>
-            </div>
-        
-            <!-- Divider -->
-            <div style="border-top:1px solid rgba(30,41,59,0.8); margin:0.125rem 0;"></div>
-        
-            <!-- Batch size -->
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:0 0.25rem; gap:0.75rem;">
-                <span style="font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8; flex-shrink:0;">
-                    Чисел за тик
-                </span>
-                <div style="display:flex; align-items:center; gap:0.375rem;">
-                    <button id="batch-decr" class="btn-icon-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12h14"/></svg>
-                    </button>
-                    <input type="number" id="batch-input" value="1" min="1" max="10000" step="1" class="batch-input">
-                    <button id="batch-incr" class="btn-icon-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                    </button>
+
+                <!-- Slider -->
+                <div style="display:flex; flex-direction:column; gap:0.25rem; padding:0 0.125rem;">
+                    <input type="range" id="speed-slider" min="0" max="5000" value="0" step="10" class="speed-slider">
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; font-family:monospace; padding:0 0.125rem; margin-top:0.125rem;">
+                        <span>Выкл</span>
+                        <span>1с</span>
+                        <span>2с</span>
+                        <span>3с</span>
+                        <span>4с</span>
+                        <span>5с</span>
+                    </div>
                 </div>
-            </div>
-        
-            <!-- Quick batch presets -->
-            <div style="display:flex; flex-wrap:wrap; gap:0.375rem; justify-content:center; margin-top:-0.125rem;">
-                <button data-batch="1" class="batch-preset active">1</button>
-                <button data-batch="5" class="batch-preset">5</button>
-                <button data-batch="10" class="batch-preset">10</button>
-                <button data-batch="25" class="batch-preset">25</button>
-                <button data-batch="50" class="batch-preset">50</button>
-                <button data-batch="100" class="batch-preset">100</button>
-                <button data-batch="500" class="batch-preset">500</button>
-                <button data-batch="1000" class="batch-preset">1k</button>
-            </div>
+
+                <!-- Preset buttons -->
+                <div style="display:flex; flex-wrap:wrap; gap:0.375rem; justify-content:center;">
+                    <button data-ms="0" class="speed-preset active">Выкл</button>
+                    <button data-ms="50" class="speed-preset">50ms</button>
+                    <button data-ms="100" class="speed-preset">100ms</button>
+                    <button data-ms="250" class="speed-preset">250ms</button>
+                    <button data-ms="500" class="speed-preset">500ms</button>
+                    <button data-ms="750" class="speed-preset">750ms</button>
+                    <button data-ms="1000" class="speed-preset">1000ms</button>
+                    <button data-ms="2000" class="speed-preset">2000ms</button>
+                </div>
+
+                <!-- Divider -->
+                <div style="border-top:1px solid rgba(30,41,59,0.8); margin:0.125rem 0;"></div>
+            </section>
+
+            <section id="batch-section" class="controller-section">
+                <!-- Batch size -->
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:0 0.25rem; gap:0.75rem;">
+                    <span style="font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8; flex-shrink:0;">
+                        Чисел за тик
+                    </span>
+                    <div style="display:flex; align-items:center; gap:0.375rem;">
+                        <button id="batch-decr" class="btn-icon-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12h14"/></svg>
+                        </button>
+                        <input type="number" id="batch-input" value="1" min="1" max="10000" step="1" class="batch-input">
+                        <button id="batch-incr" class="btn-icon-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick batch presets -->
+                <div style="display:flex; flex-wrap:wrap; gap:0.375rem; justify-content:center; margin-top:-0.125rem;">
+                    <button data-batch="1" class="batch-preset active">1</button>
+                    <button data-batch="5" class="batch-preset">5</button>
+                    <button data-batch="10" class="batch-preset">10</button>
+                    <button data-batch="25" class="batch-preset">25</button>
+                    <button data-batch="50" class="batch-preset">50</button>
+                    <button data-batch="100" class="batch-preset">100</button>
+                    <button data-batch="500" class="batch-preset">500</button>
+                    <button data-batch="1000" class="batch-preset">1k</button>
+                </div>
+            </section>
         </div>
         `
     }
@@ -231,6 +246,8 @@ class SpeedController extends HTMLElement {
 
         const speedSlider = root.getElementById('speed-slider');
         const speedDisplay = root.querySelector('.speed-display');
+        this.speedSection = root.getElementById('speed-section');
+        this.batchSection = root.getElementById('batch-section');
         const batchInput = root.getElementById('batch-input');
         const batchDecr = root.getElementById('batch-decr');
         const batchIncr = root.getElementById('batch-incr');
@@ -243,7 +260,7 @@ class SpeedController extends HTMLElement {
         const formatSpeed = (ms) => {
             if (ms === 0) return 'Выкл';
             if (ms < 1000) return ms + 'ms';
-            return (ms / 1000).toFixed(1).replace(/\.0$/, '') + 'c';
+            return (ms / 1000).toFixed(1).replace(/\.0$/, '') + 'с';
         };
 
         const updateSpeedDisplay = () => {
@@ -296,7 +313,33 @@ class SpeedController extends HTMLElement {
         updateSpeedDisplay();
         updateBatchDisplay();
 
+        this.handleOutputModeChange = (event) => {
+            this.applyMode(event.detail.selected_mode);
+        };
+        outputMode_EventTarget.addEventListener('output_change', this.handleOutputModeChange);
+
+        this.applyMode(state.outputMode);
+        this.setBatchSectionVisible(false);
+
         window.__speedState = speedState;
+    }
+
+    disconnectedCallback() {
+        outputMode_EventTarget.removeEventListener('output_change', this.handleOutputModeChange);
+    }
+
+    setSpeedSectionVisible(isVisible) {
+        this.speedSection.hidden = !isVisible;
+    }
+
+    setBatchSectionVisible(isVisible) {
+        this.batchSection.hidden = !isVisible;
+    }
+
+    applyMode(mode) {
+        this.style.display = mode === 'instant' ? 'none' : '';
+        this.setSpeedSectionVisible(mode === 'auto');
+        this.setBatchSectionVisible(mode === 'auto' || mode === 'manual');
     }
 }
 

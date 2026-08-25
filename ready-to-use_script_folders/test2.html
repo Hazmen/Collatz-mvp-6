@@ -1,92 +1,723 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smooth Number Scroll</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Execution Mode - Segmented Control</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
     <style>
-        /* Кастомный скроллбар, чтобы не зависеть от плагинов Tailwind */
-        .custom-scrollbar::-webkit-scrollbar { height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #27272a; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #52525b; border-radius: 4px; transition: background 0.2s; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #71717a; }
-        
-        /* Убираем выделение текста при быстром дергании мышкой */
-        .no-select {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 520px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #71717a;
+            font-size: 0.875rem;
+            font-weight: 400;
+        }
+
+        /* ===== ОСНОВНОЙ КОНТРОЛ ===== */
+        .segmented-control {
+            position: relative;
+            background: #000000;
+            border-radius: 20px;
+            padding: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 40px -10px rgba(255, 255, 255, 0.05);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            cursor: default;
+            overflow: visible;
+            margin-bottom: 2.5rem;
+            transition: height 0.3s ease;
+        }
+
+        /* ===== СЛАЙДЕР (трекинг) ===== */
+        .slider {
+            position: absolute;
+            top: 6px;
+            bottom: 6px;
+            left: 6px;
+            background: #ffffff;
+            border-radius: 14px;
+            will-change: transform, width;
+            pointer-events: none;
+            z-index: 1;
+            box-shadow: 0 2px 8px rgba(255, 255, 255, 0.15);
+        }
+
+        /* ===== СЛОЙ С ТЕКСТОМ ===== */
+        .labels {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            width: 100%;
+            height: 100%;
+            color: #ffffff;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            mix-blend-mode: difference;
+        }
+
+        /* ===== ОБЩИЙ СТИЛЬ ДЛЯ ОПЦИЙ ===== */
+        .option {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            border-radius: 14px;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.2s ease;
+        }
+
+        .option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+            pointer-events: none;
+        }
+
+        .option span {
+            position: relative;
+            z-index: 3;
+            white-space: nowrap;
+            font-weight: 500;
+            transition: transform 0.2s ease;
+        }
+
+        .option:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .option:active span {
+            transform: scale(0.95);
+        }
+
+        /* ===== КОНТЕЙНЕР SBS ===== */
+        .sbs-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 14px;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        /* Одиночная надпись SBS */
+        .sbs-single {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            pointer-events: none;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .sbs-single.hidden {
+            opacity: 0;
+            transform: scale(0.8);
+            pointer-events: none;
+        }
+
+        /* Разделённый SBS (Auto + Manual) */
+        .sbs-split {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            pointer-events: none;
+            border-radius: 14px;
+            transform: scale(0.9);
+        }
+
+        .sbs-split.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1);
+        }
+
+        .sbs-split .option {
+            flex: 1;
+            border-radius: 14px;
+            min-width: 0;
+        }
+
+        /* ===== ДЕЛИТЕЛЬНАЯ ЛИНИЯ (только в SBS режиме) ===== */
+        .divider {
+            position: absolute;
+            top: 25%;
+            bottom: 25%;
+            left: 50%;
+            width: 1px;
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateX(-50%);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .divider.visible {
+            opacity: 1;
+        }
+
+        /* ===== ТЕХНИЧЕСКИЙ БЛОК ===== */
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            font-size: 0.75rem;
+            color: #52525b;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            flex-wrap: wrap;
+        }
+
+        .tech-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #27272a;
+        }
+
+        /* ===== АНИМАЦИЯ ПОЯВЛЕНИЯ ===== */
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(4px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .option-appear {
+            animation: fadeSlideIn 0.3s ease forwards;
+        }
+
+        /* ===== АДАПТИВ ===== */
+        @media (max-width: 420px) {
+            .segmented-control {
+                height: 52px;
+                border-radius: 16px;
+                padding: 4px;
+            }
+            .slider {
+                border-radius: 12px;
+                top: 4px;
+                bottom: 4px;
+                left: 4px;
+            }
+            .labels {
+                font-size: 0.8125rem;
+            }
+            .option {
+                border-radius: 12px;
+            }
+            .sbs-wrapper {
+                border-radius: 12px;
+            }
+            .sbs-single {
+                border-radius: 12px;
+            }
+            .sbs-split {
+                border-radius: 12px;
+            }
+            .sbs-split .option {
+                border-radius: 12px;
+            }
+            .header h1 {
+                font-size: 1.25rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .segmented-control {
+                height: 46px;
+                border-radius: 14px;
+                padding: 4px;
+            }
+            .labels {
+                font-size: 0.7rem;
+            }
+            .slider {
+                border-radius: 10px;
+                top: 4px;
+                bottom: 4px;
+                left: 4px;
+            }
+            .option {
+                border-radius: 10px;
+            }
+            .sbs-wrapper {
+                border-radius: 10px;
+            }
+            .sbs-single {
+                border-radius: 10px;
+            }
+            .sbs-split {
+                border-radius: 10px;
+            }
+            .sbs-split .option {
+                border-radius: 10px;
+            }
+        }
+
+        /* ===== ТЁМНАЯ ТЕМА ДЛЯ СЛАЙДЕРА ===== */
+        .segmented-control.dark-slider .slider {
+            background: #1a1a1a;
+        }
+
+        /* ===== ИНДИКАТОР СОСТОЯНИЯ ===== */
+        .status-badge {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: #52525b;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            min-height: 1.5rem;
+        }
+
+        .status-badge.visible {
+            opacity: 1;
+        }
+
+        .status-badge strong {
+            color: #a1a1aa;
+            font-weight: 500;
         }
     </style>
 </head>
-<body class="flex flex-col justify-center items-center min-h-screen bg-zinc-950 p-8 font-sans text-zinc-300">
+<body>
 
-    <div class="flex flex-col gap-4 w-full max-w-md">
-        <label class="text-sm font-medium text-zinc-500 uppercase tracking-wider">Transaction ID</label>
-        
-        <!-- Сам контейнер с числом -->
-        <div id="numberBox" class="custom-scrollbar no-select flex items-center overflow-x-auto whitespace-nowrap rounded-lg bg-zinc-900 border border-zinc-800 px-4 py-3 font-mono text-lg text-zinc-100 shadow-xl cursor-grab active:cursor-grabbing transition-colors">
-            18279475813765819365829385781376578239575
+    <div class="container">
+
+        <div class="header">
+            <h1>⚡ Execution Mode</h1>
+            <p>Выберите режим вывода данных</p>
         </div>
+
+        <!-- SEGMENTED CONTROL -->
+        <div class="segmented-control" id="segmentedControl">
+
+            <!-- Слайдер -->
+            <div class="slider" id="slider"></div>
+
+            <!-- Слой с текстом -->
+            <div class="labels" id="labelsLayer">
+
+                <!-- 1. Мгновенный -->
+                <label class="option" id="optionInstant" data-value="instant">
+                    <input type="radio" name="mode" value="instant" />
+                    <span>Мгновенный</span>
+                </label>
+
+                <!-- 2. Step By Step (контейнер) -->
+                <div class="sbs-wrapper" id="sbsWrapper">
+
+                    <!-- Одиночная надпись -->
+                    <div class="sbs-single" id="sbsSingle">
+                        <span>Step By Step</span>
+                    </div>
+
+                    <!-- Разделённый вариант -->
+                    <div class="sbs-split" id="sbsSplit">
+                        <label class="option" id="optionAuto" data-value="auto">
+                            <input type="radio" name="mode" value="auto" />
+                            <span>Auto</span>
+                        </label>
+                        <div class="divider" id="divider"></div>
+                        <label class="option" id="optionManual" data-value="manual">
+                            <input type="radio" name="mode" value="manual" />
+                            <span>Manual</span>
+                        </label>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Статус -->
+        <div class="status-badge" id="statusBadge">
+            Текущий режим: <strong id="currentModeLabel">Мгновенный</strong>
+        </div>
+
+        <div class="tech-stack">
+            <span class="tech-item"><div class="dot"></div> Anime.js</span>
+            <span class="tech-item"><div class="dot"></div> mix-blend-mode</span>
+            <span class="tech-item"><div class="dot"></div> localStorage</span>
+        </div>
+
     </div>
 
     <script>
-        const box = document.getElementById('numberBox');
-        
-        let isDown = false;
-        let startX;
-        let scrollLeft;
+        (function() {
+            'use strict';
 
-        // Функция начала перетаскивания
-        const startDrag = (e) => {
-            isDown = true;
-            // Меняем курсор глобально, чтобы не было мерцания, если мышь уйдет за пределы бокса
-            document.body.style.cursor = 'grabbing'; 
-            
-            // Берем координату X (поддержка и мыши, и тача)
-            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-            startX = clientX;
-            scrollLeft = box.scrollLeft;
-        };
+            // ===== DOM ЭЛЕМЕНТЫ =====
+            const control = document.getElementById('segmentedControl');
+            const slider = document.getElementById('slider');
+            const sbsWrapper = document.getElementById('sbsWrapper');
+            const sbsSingle = document.getElementById('sbsSingle');
+            const sbsSplit = document.getElementById('sbsSplit');
+            const divider = document.getElementById('divider');
+            const statusBadge = document.getElementById('statusBadge');
+            const modeLabel = document.getElementById('currentModeLabel');
 
-        // Функция завершения перетаскивания
-        const stopDrag = () => {
-            if (!isDown) return;
-            isDown = false;
-            document.body.style.cursor = ''; // Возвращаем курсор в дефолтное состояние
-        };
+            const optionInstant = document.getElementById('optionInstant');
+            const optionAuto = document.getElementById('optionAuto');
+            const optionManual = document.getElementById('optionManual');
 
-        // Сама логика движения
-        const onDrag = (e) => {
-            if (!isDown) return;
-            e.preventDefault(); // Блокируем нативное поведение (выделение текста, скролл страницы на мобилках)
+            const radioInstant = document.querySelector('input[value="instant"]');
+            const radioAuto = document.querySelector('input[value="auto"]');
+            const radioManual = document.querySelector('input[value="manual"]');
+            const allRadios = document.querySelectorAll('input[name="mode"]');
 
-            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-            
-            // Считаем пройденную дистанцию. Множитель 1.2 добавляет немного "резкости", 
-            // чтобы не пришлось тянуть мышь через весь стол. Можно поставить 1 для 1:1.
-            const walk = (clientX - startX) * 1.2; 
-            
-            // Обновляем скролл. Минус стоит потому что если тянем вправо (walk > 0), 
-            // то содержимое должно уезжать влево (scrollLeft уменьшается).
-            box.scrollLeft = scrollLeft - walk;
-        };
+            // ===== СОСТОЯНИЕ =====
+            let currentMode = 'instant';
+            let isAnimating = false;
+            let isSbsActive = false;
 
-        // --- СОБЫТИЯ МЫШИ ---
-        box.addEventListener('mousedown', startDrag);
-        
-        // ГЛАВНЫЙ ФИКС: слушаем отпускание и движение на всем документе, а не на самом боксе
-        document.addEventListener('mouseup', stopDrag);
-        document.addEventListener('mousemove', onDrag);
+            // ===== СОХРАНЕНИЕ СОСТОЯНИЯ =====
+            function saveState(mode) {
+                try {
+                    localStorage.setItem('executionMode', mode);
+                } catch (e) { /* ignore */ }
+            }
 
-        // --- СОБЫТИЯ ТАЧСКРИНА (для мобилок) ---
-        box.addEventListener('touchstart', startDrag, { passive: true });
-        document.addEventListener('touchend', stopDrag);
-        // passive: false важен, чтобы e.preventDefault() внутри onDrag мог блокировать скролл самой страницы
-        document.addEventListener('touchmove', onDrag, { passive: false }); 
+            function loadState() {
+                try {
+                    return localStorage.getItem('executionMode');
+                } catch (e) { return null; }
+            }
 
+            // ===== ФУНКЦИЯ ОБНОВЛЕНИЯ ПОЛОЖЕНИЯ =====
+            function getSliderDimensions() {
+                const controlRect = control.getBoundingClientRect();
+                const padding = parseFloat(getComputedStyle(control).paddingLeft);
+                const totalWidth = controlRect.width;
+                const paddingTotal = padding * 2;
+                const availableWidth = totalWidth - paddingTotal;
+                const halfWidth = availableWidth / 2;
+
+                return { padding, totalWidth, availableWidth, halfWidth };
+            }
+
+            function updateSlider(mode, animate = true) {
+                if (isAnimating) return;
+
+                const dims = getSliderDimensions();
+                const targetWidth = dims.halfWidth;
+                const offset = dims.halfWidth + dims.padding;
+
+                let targetX = 0;
+                let targetWidthFinal = targetWidth;
+                let showSbsSplit = false;
+                let showSbsSingle = true;
+                let showDivider = false;
+
+                if (mode === 'instant') {
+                    targetX = 0;
+                    targetWidthFinal = targetWidth;
+                    showSbsSplit = false;
+                    showSbsSingle = true;
+                    showDivider = false;
+                    isSbsActive = false;
+                } else if (mode === 'auto' || mode === 'manual') {
+                    targetX = offset;
+                    targetWidthFinal = targetWidth;
+                    showSbsSplit = true;
+                    showSbsSingle = false;
+                    showDivider = true;
+                    isSbsActive = true;
+                }
+
+                // Обновляем состояние
+                currentMode = mode;
+                isSbsActive = (mode === 'auto' || mode === 'manual');
+
+                // Анимация слайдера
+                if (animate) {
+                    isAnimating = true;
+
+                    // Анимация ширины и позиции
+                    anime({
+                        targets: slider,
+                        width: targetWidthFinal + 'px',
+                        translateX: targetX + 'px',
+                        duration: 450,
+                        easing: 'easeOutCubic',
+                        update: function() {
+                            // Для обеспечения плавности
+                        },
+                        complete: function() {
+                            isAnimating = false;
+                        }
+                    });
+
+                    // Анимация SBS элементов
+                    if (showSbsSplit) {
+                        // Показываем разделённый вид
+                        anime({
+                            targets: sbsSplit,
+                            opacity: 1,
+                            scale: 1,
+                            duration: 350,
+                            easing: 'easeOutCubic',
+                            begin: function() {
+                                sbsSplit.classList.add('visible');
+                                divider.classList.add('visible');
+                            }
+                        });
+
+                        anime({
+                            targets: sbsSingle,
+                            opacity: 0,
+                            scale: 0.8,
+                            duration: 300,
+                            easing: 'easeOutCubic',
+                            begin: function() {
+                                sbsSingle.classList.add('hidden');
+                            }
+                        });
+                    } else {
+                        // Показываем одиночный SBS
+                        anime({
+                            targets: sbsSingle,
+                            opacity: 1,
+                            scale: 1,
+                            duration: 350,
+                            easing: 'easeOutCubic',
+                            begin: function() {
+                                sbsSingle.classList.remove('hidden');
+                            }
+                        });
+
+                        anime({
+                            targets: sbsSplit,
+                            opacity: 0,
+                            scale: 0.9,
+                            duration: 300,
+                            easing: 'easeOutCubic',
+                            complete: function() {
+                                sbsSplit.classList.remove('visible');
+                                divider.classList.remove('visible');
+                            }
+                        });
+                    }
+                } else {
+                    // Без анимации
+                    slider.style.width = targetWidthFinal + 'px';
+                    slider.style.transform = `translateX(${targetX}px)`;
+
+                    if (showSbsSplit) {
+                        sbsSplit.classList.add('visible');
+                        sbsSingle.classList.add('hidden');
+                        divider.classList.add('visible');
+                        sbsSplit.style.opacity = '1';
+                        sbsSplit.style.transform = 'scale(1)';
+                        sbsSingle.style.opacity = '0';
+                        sbsSingle.style.transform = 'scale(0.8)';
+                    } else {
+                        sbsSingle.classList.remove('hidden');
+                        sbsSplit.classList.remove('visible');
+                        divider.classList.remove('visible');
+                        sbsSingle.style.opacity = '1';
+                        sbsSingle.style.transform = 'scale(1)';
+                        sbsSplit.style.opacity = '0';
+                        sbsSplit.style.transform = 'scale(0.9)';
+                    }
+                }
+
+                // Обновляем статус
+                updateStatus(mode);
+                saveState(mode);
+            }
+
+            // ===== ОБНОВЛЕНИЕ СТАТУСА =====
+            function updateStatus(mode) {
+                const labels = {
+                    'instant': 'Мгновенный',
+                    'auto': 'Auto (SBS)',
+                    'manual': 'Manual (SBS)'
+                };
+                modeLabel.textContent = labels[mode] || mode;
+                statusBadge.classList.add('visible');
+            }
+
+            // ===== ОБРАБОТЧИКИ =====
+            // 1. Радио-кнопки
+            allRadios.forEach(radio => {
+                radio.addEventListener('change', function(e) {
+                    if (this.checked) {
+                        updateSlider(this.value, true);
+                    }
+                });
+            });
+
+            // 2. Клик по SBS с определением стороны
+            sbsWrapper.addEventListener('click', function(e) {
+                // Если уже анимируется или клик по внутренней опции
+                if (isAnimating) return;
+
+                const target = e.target;
+                const isOptionClick = target.closest('.option');
+
+                // Если клик по опции внутри SBS (Auto/Manual) - не обрабатываем
+                if (isOptionClick && isOptionClick.closest('.sbs-split')) {
+                    return;
+                }
+
+                // Если уже активен SBS режим, ничего не делаем (или можно переключать)
+                if (isSbsActive) {
+                    // Можно добавить логику переключения между Auto/Manual по клику на разные половины
+                    // Но по ТЗ это не требуется
+                    return;
+                }
+
+                // Определяем сторону клика относительно SBS контейнера
+                const rect = sbsWrapper.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const width = rect.width;
+                const isLeftHalf = clickX < width / 2;
+
+                // Выбираем Auto (левая половина) или Manual (правая половина)
+                const selectedMode = isLeftHalf ? 'auto' : 'manual';
+
+                // Активируем соответствующую радио-кнопку
+                const targetRadio = document.querySelector(`input[value="${selectedMode}"]`);
+                if (targetRadio) {
+                    targetRadio.checked = true;
+                    updateSlider(selectedMode, true);
+                }
+            });
+
+            // ===== ИНИЦИАЛИЗАЦИЯ =====
+            const savedMode = loadState();
+            let initialMode = 'instant';
+
+            if (savedMode && ['instant', 'auto', 'manual'].includes(savedMode)) {
+                initialMode = savedMode;
+            }
+
+            // Устанавливаем радио-кнопку
+            const initialRadio = document.querySelector(`input[value="${initialMode}"]`);
+            if (initialRadio) {
+                initialRadio.checked = true;
+            }
+
+            // Применяем состояние без анимации
+            setTimeout(() => {
+                updateSlider(initialMode, false);
+                // Небольшая корректировка после рендера
+                setTimeout(() => {
+                    updateSlider(initialMode, false);
+                }, 100);
+            }, 50);
+
+            // ===== ПЕРЕСЧЁТ ПРИ РЕСАЙЗЕ =====
+            let resizeTimeout;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    const checked = document.querySelector('input[name="mode"]:checked');
+                    if (checked) {
+                        updateSlider(checked.value, false);
+                    }
+                }, 150);
+            });
+
+            // ===== ДОПОЛНИТЕЛЬНЫЙ ЭФФЕКТ: HOVER НА SBS =====
+            sbsWrapper.addEventListener('mouseenter', function() {
+                if (!isSbsActive) {
+                    sbsSingle.style.transform = 'scale(1.02)';
+                    sbsSingle.style.transition = 'transform 0.2s ease';
+                }
+            });
+
+            sbsWrapper.addEventListener('mouseleave', function() {
+                if (!isSbsActive) {
+                    sbsSingle.style.transform = 'scale(1)';
+                    sbsSingle.style.transition = 'transform 0.2s ease';
+                }
+            });
+
+            // ===== ОБРАБОТКА КЛИКОВ НА ОПЦИЯХ (для красоты) =====
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.addEventListener('click', function(e) {
+                    // Добавляем ripple эффект
+                    const span = this.querySelector('span');
+                    if (span) {
+                        anime({
+                            targets: span,
+                            scale: [0.9, 1],
+                            duration: 200,
+                            easing: 'easeOutCubic'
+                        });
+                    }
+                });
+            });
+
+            console.log('✅ Segmented Control инициализирован!');
+            console.log(`📌 Текущий режим: ${initialMode}`);
+
+        })();
     </script>
+
 </body>
 </html>

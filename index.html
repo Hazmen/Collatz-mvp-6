@@ -9,17 +9,19 @@
     <!-- LINKS -->
     <link rel="stylesheet" href="assets/tailwind/dist/output.css">
     <link rel="stylesheet" href="assets/css/layout.css">
+    <script src="assets/vendor/anime.min.js"></script>
 </head>
 <body class="min-h-screen bg-gray-800 text-white flex justify-top text-center flex-col gap-10">
+    <button class="lock-things fixed top-0 right-0 cursor-pointer text-2xl m-2 border border-blue-800 p-3">‼</button>
     <header class="flex flex-col items-center">
         <!-- <h1 class="m-6 p-2 text-3xl font-bold shadow-lg rounded-xl border-gray-700 border">This is such a cool text! :D</h1> -->
         <div class="control-box flex flex-col w-full max-w-sm p-5 bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-3xl gap-5 shadow-2xl ml-3 mt-5">
     
             <div class="flex flex-col gap-2">
                 <div class="flex justify-between items-center px-1">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Ввод числа</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Number input</span>
                     <div class="flex gap-1.5">
-                        <button title="Clear number" class="clear-inp w-8 h-8 flex items-center justify-center text-slate-400 hover:text-rose-400 bg-slate-800/80 hover:bg-slate-700 active:scale-90 border border-slate-700/50 rounded-lg transition-all duration-150">
+                        <button title="Clear input" class="clear-inp w-8 h-8 flex items-center justify-center text-slate-400 hover:text-rose-400 bg-slate-800/80 hover:bg-slate-700 active:scale-90 border border-slate-700/50 rounded-lg transition-all duration-150">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M3 6h18"/>
                                 <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
@@ -59,27 +61,48 @@
             </div>
         
             <div class="grid grid-cols-3 gap-2">
-                <button title="Reset" class="proc-reset h-12 flex items-center justify-center text-slate-400 hover:text-rose-400 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 active:scale-95 rounded-2xl transition-all duration-150 shadow-sm">
+                <button title="Reset (R)" class="proc-reset h-12 flex items-center justify-center text-slate-400 hover:text-rose-400 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 active:scale-95 rounded-2xl transition-all duration-150 shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
                         <path d="M3 3v5h5"/>
                     </svg>
                 </button>
                 
-                <button title="runProcessControlsjsjs" id="runButton" class="proc-run h-12 flex items-center justify-center text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 active:scale-95 rounded-2xl transition-all duration-150 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30">
+                <button title="Run (Space)" id="runButton" class="proc-run h-12 flex items-center justify-center text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 active:scale-95 rounded-2xl transition-all duration-150 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 lockable">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" class="ml-0.5">
                         <path d="M8 5v14l11-7z"/>
                     </svg>
                 </button>
                 
-                <button title="Skip all remainings" class="proc-skip h-12 flex items-center justify-center text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 active:scale-95 rounded-2xl transition-all duration-150 shadow-sm">
+                <div class="grid grid-cols-2 gap-1">
+                    <button title="Show next number (Z)" class="proc-showNext h-12 flex items-center justify-center text-4xl text-slate-400 hover:text-green-500 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 active:scale-95 rounded-2xl transition-all duration-150 shadow-sm lockable">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>                          
+                    </button>
+
+                    <button title="Delete last number (X)" class="proc-delLast h-12 flex items-center justify-center text-4xl text-slate-400 hover:text-red-500 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 active:scale-95 rounded-2xl transition-all duration-150 shadow-sm lockable">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                          
+                    </button>
+                </div>
+
+                <button title="Skip all remaining (F)" class="proc-skip h-12 flex items-center justify-center text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 active:scale-95 rounded-2xl transition-all duration-150 shadow-sm lockable">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="5 4 15 12 5 20 5 4"/>
                         <line x1="19" x2="19" y1="5" y2="19"/>
                     </svg>
                 </button>
+
             </div>
         </div>
+
+        
+
+        <output-mode-control></output-mode-control>
 
         <speed-controller></speed-controller>
     </header>
@@ -131,6 +154,7 @@
     </main>
     
     <script src="./ESmodules/main.js" type="module"></script>
+    
     <!-- <script src="./ESmodules/ui/inputControls.js" type="module"></script> -->
     <!-- <script src="CollatzLogic/mainCollatz.js" defer></script> -->
 </body>

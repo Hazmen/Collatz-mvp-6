@@ -5,6 +5,7 @@ import { SBSoutput } from './core/SBSoutputManager.js';
 import { preventLetters } from './ui/inputControls.js';
 import { RunSequenceCalc } from './ui/runProcessControls.js';
 import '../webComponents/speedController.js';
+import '../webComponents/outputModeController.js';
 import './visualisation/viewModes/sequenceView.js';
 
 // input controls

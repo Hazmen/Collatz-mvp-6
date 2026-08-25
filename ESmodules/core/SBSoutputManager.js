@@ -68,6 +68,27 @@ export function skipSBS() {
     finishSBS();                                                /* mark done and notify the UI */
 }
 
+// ------ RENDER ONE MORE BATCH ------ \\
+export function RenderNextBatchSBS() {
+    if (SBSconfig.doneRunning) return;
+
+    pauseSBS();
+
+    const workerResultLen = state.workerResult.length;
+    const startIndex = SBSconfig.currentStepIndex;
+
+    if (startIndex >= workerResultLen) { finishSBS(); return; }
+
+    currentBatch = state.workerResult.slice(startIndex, startIndex + batchSize);
+
+    // ------ TRACK MAXIMUM VALUE ------ \\
+    for (let i = 0; i < currentBatch.length; i++) {                      
+        if (SBSconfig.currentMaxNum === 0n || currentBatch[i] > SBSconfig.currentMaxNum) {
+            SBSconfig.currentMaxNum = currentBatch[i];
+        }
+    } 
+}
+
 // ------ PAUSE & RESUME ------ \\
 export function resumeSBS() {
     if (SBSconfig.doneRunning) return;
@@ -146,5 +167,6 @@ function runSBSTick() {
         runSBSTick();
     }, intervalMs);
 }
+
 
 
