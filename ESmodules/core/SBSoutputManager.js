@@ -1,5 +1,5 @@
 import { state, stateTarget, speedState, SBSconfig } from "../state/state.js";
-import { sendSBS_Data, sendSBS_DoneEvent, sendSBS_ClearEvent } from "../state/events.js";
+import { sendSBS_Data, sendSBS_DoneEvent, sendSBS_DataRemoveEvent } from "../state/events.js";
 import { resetSBS } from "../state/stateManager.js";
 
 // SBS = Step By Step 
@@ -68,26 +68,82 @@ export function skipSBS() {
     finishSBS();                                                /* mark done and notify the UI */
 }
 
-// ------ RENDER ONE MORE BATCH ------ \\
-export function RenderNextBatchSBS() {
-    if (SBSconfig.doneRunning) return;
+// ------ MANUAL STEP: RENDER ONE MORE BATCH ------ \\
+export function addOneBatchSBS() {
 
-    pauseSBS();
-
+    // ------ PREPARE BATCH DATA ------ \\
     const workerResultLen = state.workerResult.length;
-    const startIndex = SBSconfig.currentStepIndex;
+    const batchSize = Math.max(1, Number(speedState.batchSize) || 1);    /* guard against 0/NaN */
+    const startIndex = SBSconfig.currentStepIndex;                       /* first not-yet-shown index */
 
-    if (startIndex >= workerResultLen) { finishSBS(); return; }
+    // ------ GUARD: NOTHING LEFT ------ \\
+    if (startIndex >= workerResultLen) { finishSBS(); return; }          /* all data already shown */
 
-    currentBatch = state.workerResult.slice(startIndex, startIndex + batchSize);
+    // ------ SLICE NEXT BATCH ------ \\
+    currentBatch = state.workerResult.slice(startIndex, startIndex + batchSize); /* up to batchSize items */
+
+    // ------ RENDER BATCH ------ \\
+    SBSconfig.visibleItems.push(...currentBatch);                        /* append to visible list */
+
+    // ------ SET VISIBLE ITEMS LENGTH ------ \\
+    SBSconfig.visibleItemsLen = SBSconfig.visibleItems.length;           /* keep length in sync */
 
     // ------ TRACK MAXIMUM VALUE ------ \\
-    for (let i = 0; i < currentBatch.length; i++) {                      
+    for (let i = 0; i < currentBatch.length; i++) {
         if (SBSconfig.currentMaxNum === 0n || currentBatch[i] > SBSconfig.currentMaxNum) {
-            SBSconfig.currentMaxNum = currentBatch[i];
+            SBSconfig.currentMaxNum = currentBatch[i];                  /* update running max */
         }
-    } 
+    }
+
+    // ------ UPDATE STEP INDEX ------ \\
+    const endIndex = startIndex + currentBatch.length - 1;
+    SBSconfig.currentStepIndex = startIndex + currentBatch.length;       /* move pointer forward */
+
+    // ------ DISPATCH DATA TO UI ------ \\
+    sendSBS_Data(SBSconfig, currentBatch, SBSeventTarget, startIndex, endIndex); /* this is Data of ONE current tick */
+
+    // ------ FINISH IF THIS WAS THE LAST BATCH ------ \\
+    if (SBSconfig.currentStepIndex >= workerResultLen) {
+        finishSBS();                                                     /* mark done and notify UI */
+        return;
+    }
 }
+
+// ------ MANUAL STEP: REMOVE ONE BATCH ------ \\
+export function removeOneBatchSBS() {
+
+    // ------ GUARD: NOTHING TO REMOVE ------ \\
+    if (SBSconfig.visibleItems.length === 0 || SBSconfig.currentStepIndex <= 0) return; /* empty or at start */
+    if (SBSconfig.doneRunning) SBSconfig.doneRunning = false;            /* going back means not done anymore */
+
+    // ------ CALC HOW MUCH TO REMOVE ------ \\
+    const batchSize = Math.max(1, Number(speedState.batchSize) || 1);    /* guard against 0/NaN */
+    const howMuchToRemove = Math.min(batchSize, SBSconfig.visibleItems.length); /* don't overshoot */
+
+    // ------ CALC REMOVED RANGE ------ \\
+    const startIndex = SBSconfig.currentStepIndex - howMuchToRemove;     /* first removed (0-based) */
+    const endIndex = SBSconfig.currentStepIndex - 1;                     /* last removed */
+
+    // ------ TAKE AND CUT ------ \\
+    currentBatch = SBSconfig.visibleItems.slice(startIndex, endIndex + 1); /* snapshot before cutting */
+    SBSconfig.visibleItems.splice(startIndex, howMuchToRemove);            /* remove from visible list */
+
+    // ------ UPDATE LENGTH ------ \\
+    SBSconfig.visibleItemsLen = SBSconfig.visibleItems.length;           /* keep length in sync */
+
+    // ------ RECALC MAXIMUM ------ \\
+    SBSconfig.currentMaxNum = (SBSconfig.visibleItems.length === 0)
+        ? 0n                                                             /* nothing left -> reset */
+        : SBSconfig.visibleItems.reduce((a, b) => a > b ? a : b);       /* scan remainder for max */
+
+    // ------ UPDATE STEP INDEX ------ \\
+    SBSconfig.currentStepIndex = startIndex;                             /* shown == startIndex again */
+
+    // ------ DISPATCH REMOVE TO UI ------ \\
+    sendSBS_DataRemoveEvent(SBSconfig, SBSeventTarget, startIndex, endIndex);
+}
+
+
 
 // ------ PAUSE & RESUME ------ \\
 export function resumeSBS() {

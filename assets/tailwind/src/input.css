@@ -181,14 +181,15 @@
   transform: translateX(0);
 }
 
-@utility locked {
-  pointer-events: none;
-  opacity: .5;
+@utility unavailable {
+  display: none;
 }
 
-@utility lockable {
-  transform: opacity .3s ease;
+@utility locked {
+  opacity: .5;
+  pointer-events: none;
 }
+
 
 
 

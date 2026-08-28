@@ -21,6 +21,7 @@ export function resetState() {
   const initialStateConfig = {
     activeInputValue: 0n,
     inputError: false,
+    outputMode: 'instant',
     isComputing: false,
     hasResult: false,
     workerResult: [],
@@ -38,10 +39,13 @@ export function resetSBS() {
     isRunning: false,
     doneRunning: false,
     visibleItems: [],
-    currentMaxNum: 0n,
+    visibleItemsLen: 0,
+    currentMaxNum: 0n, 
     currentBatch: [],
     batchStartIndex: 0,
     batchEndIndex: 0,
+    removeBatchStartIndex: 0,
+    removeBatchEndIndex: 0,
   };
 
   Object.assign(SBSconfig, initialSBSconfig);

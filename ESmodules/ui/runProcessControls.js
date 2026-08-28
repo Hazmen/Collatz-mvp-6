@@ -6,37 +6,37 @@ import { state, SBSconfig } from "../state/state.js";
 import { pauseSBS, resumeSBS, skipSBS, SBSeventTarget, startSBS } from "../core/SBSoutputManager.js";
 import { resetOutputOnly, resetSession } from "../core/resetManager.js";
 
-// ------ ENTRY POINT: WIRE UP ALL RUN/SKIP/RESET CONTROLS ------ \\
+// -------------- ENTRY POINT: WIRE UP ALL RUN/SKIP/RESET CONTROLS -------------- \\
 export function RunSequenceCalc() {
+    // -------------- PRE-CHECK LAYER: VALIDATE NEW INPUT -------------- \\
+    /* this layer runs only when starting a brand-new calculation */
 
+    const isValidInput = /^\d+$/.test(mainInputField.value);
+
+    if (!isValidInput) {
+        alert('Error! Your input must contain only numbers and cannot be empty!');
+        /* ErrorWindowAppend(); <-- For the future */
+        return; 
+    }
+
+    
     // внутри RunSequenceCalc()
     function startRunProcess() { 
-        // ------ PRE-CHECK LAYER: VALIDATE NEW INPUT ------ \\
-        /* this layer runs only when starting a brand-new calculation */
-
-        const isValidInput = /^\d+$/.test(mainInputField.value);
-
-        if (!isValidInput) {
-            alert('Error! Your input must contain only numbers and cannot be empty!');
-            /* ErrorWindowAppend(); <-- For the future */
-            return; 
-        }
-
-        // ------ GUARD: WORKER IS BUSY ------ \\
+        // -------------- GUARD: WORKER IS BUSY -------------- \\
         /* SBS regulating does not depend on the input validity */
         if (state.isComputing) return;                  /* don't act while worker is busy */
 
-        // ------ TOGGLE OFF: CURRENTLY RUNNING ------ \\
+        // -------------- TOGGLE OFF: CURRENTLY RUNNING -------------- \\
         if (SBSconfig.isRunning) {
             pauseSBS();                                 /* pause the SBS output */
             setRunButtonMode(false);
             return;
         }
 
-        // ------ DOES THE INPUT STILL MATCH THE ACTIVE RUN? ------ \\
+        // -------------- DOES THE INPUT STILL MATCH THE ACTIVE RUN? -------------- \\
         const inputMatchesActive = BigInt(mainInputField.value) === state.activeInputValue;
 
-        // ------ SAME NUMBER, ALREADY FINISHED: REPLAY WITHOUT RE-COMPUTING ------ \\
+        // -------------- SAME NUMBER, ALREADY FINISHED: REPLAY WITHOUT RE-COMPUTING -------------- \\
         if (inputMatchesActive && SBSconfig.doneRunning === true) {
             resetOutputOnly();                            /* clear the output session */
             setRunButtonMode(true);
@@ -52,7 +52,7 @@ export function RunSequenceCalc() {
             return;
         }
 
-        // ------ TOGGLE ON: RESUME FROM PAUSE (only for the same number) ------ \\
+        // -------------- TOGGLE ON: RESUME FROM PAUSE (only for the same number) -------------- \\
         const hasResult = state.workerResult.length > 0;
         const canResume = hasResult &&                              /* data exists, */
             !SBSconfig.doneRunning &&                               /* output was not finished, */
@@ -64,7 +64,7 @@ export function RunSequenceCalc() {
             return;
         }
 
-        // ------ START NEW CALCULATION ------ \\
+        // -------------- START NEW CALCULATION -------------- \\
         resetSession();                            /* wipe previous data/DOM before a new number */
 
         setStateValue('activeInputValue', BigInt(mainInputField.value)); /* store the input as BigInt */
@@ -76,19 +76,21 @@ export function RunSequenceCalc() {
         setRunButtonMode(true);     
     }  
 
-    runProcess_Elements.runButton.addEventListener('click', startRunProcess);
-    document.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' && !e.repeat) { e.preventDefault(); startRunProcess(); }
-    });
+    if (!runProcess_Elements.runButton.classList.contains('hidden')) {
+        runProcess_Elements.runButton.addEventListener('click', startRunProcess);
+        document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && !e.repeat) { e.preventDefault(); startRunProcess(); }
+        });
+    }
 
-    // ------ AUTO-RETURN BUTTON WHEN OUTPUT FINISHES ------ \\
+    // -------------- AUTO-RETURN BUTTON WHEN OUTPUT FINISHES -------------- \\
     /* when the output finishes by itself (normal way or via skip) — */
     /* the button must return to "Run" without the user's help       */
     SBSeventTarget.addEventListener('sbs_done', () => {
         setRunButtonMode(false);
     });
 
-    // ------ SKIP BUTTON ------ \\
+    // -------------- SKIP BUTTON -------------- \\
     function skipProcess() {
         if (state.isComputing) return;                  /* don't skip while worker is busy */
         /* nothing to skip: never started, nothing shown yet and no data at all */
@@ -104,7 +106,7 @@ export function RunSequenceCalc() {
         if (e.code === 'KeyF' && !e.repeat) skipProcess(); 
     });
 
-    // ------ RESET BUTTON ------ \\
+    // -------------- RESET BUTTON -------------- \\
     function resetProcess() {
         /* don't reset while worker is counting — nobody would stop it */
         if (state.isComputing) return;

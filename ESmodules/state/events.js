@@ -47,6 +47,21 @@ export function sendSBS_Data(item, data, target, startIndex, endIndex) {
     target.dispatchEvent(SBSData_BatchEvent);
 };
 
+export function sendSBS_DataRemoveEvent(item, target, startIndex, endIndex) {
+    item.delBatchStartIndex = startIndex;
+    item.delBatchEndIndex = endIndex;
+
+    const SBSData_RemoveEvent = new CustomEvent('sbs_removeBatch', {
+        detail: {
+            status: 'removeBatch',
+            startIndex,
+            endIndex
+        }
+    });
+    
+    target.dispatchEvent(SBSData_RemoveEvent);
+}
+
 export function sendSBS_DoneEvent(target) {
     const SBSDoneEvent = new CustomEvent('sbs_done', {
         detail: {
@@ -69,7 +84,7 @@ export function sendSBS_ClearEvent(target) {
 
 // -------------- OUTPUT MODE CHANGE EVENT -------------- \\
 export function sendOutputMode_ChangeEvent(target, mode) {
-    const OutputChangeEvent = new CustomEvent('output_change', {
+    const OutputChangeEvent = new CustomEvent('outputMode_change', {
         detail: {
             status: 'changed',
             selected_mode: mode

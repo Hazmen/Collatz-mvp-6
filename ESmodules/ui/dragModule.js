@@ -7,6 +7,7 @@
  * @param {boolean} options.vertical - Вертикальный скролл (по умолчанию false)
  * @returns {Function} Функция для отключения drag-to-scroll
  */
+
 export function enableDragScroll(element, options = {}) {
     const config = {
         speed: options.speed || 1,

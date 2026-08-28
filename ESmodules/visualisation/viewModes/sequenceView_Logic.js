@@ -23,8 +23,6 @@ export function txtListObj_create(parent, index, number) {
     numSpan.classList.add('txtList-num');
     numSpan.textContent = `${number}`;                  /* value of the sequence step */
 
-    enableDragScroll(numSpan, { horizontal: true, vertical: false }); /* horizontal scroll for long numbers */
-
     topRow.append(indexSpan, numSpan);
 
     // ------ TAGS BLOCK ------ \\
@@ -57,6 +55,15 @@ export function txtListObj_create(parent, index, number) {
     // ------ ATTACH TO PARENT (IF PROVIDED) ------ \\
     if (parent) {
         parent.appendChild(txtList_el);
+    }
+
+    // ------ DRAG-TO-SCROLL ONLY FOR OVERFLOWING NUMBERS ------ \\
+    /* измерять можно только после вставки в DOM: иначе нет ширины */
+    if (parent && numSpan.scrollWidth > numSpan.clientWidth) {
+        numSpan.style.cursor = 'grab';
+        enableDragScroll(numSpan, { horizontal: true, vertical: false });
+    } else {
+        numSpan.style.cursor = 'pointer';
     }
 
     // ------ HIGHLIGHT NEW ROW (indigo flash 500ms) ------ \\

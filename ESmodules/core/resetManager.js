@@ -31,7 +31,7 @@ export function resetOutputOnly() {
     clearSBSTimer();                        // 1. отменить уже запланированный тик SBS (если есть)
     resetSBS();                             // 2. обнулить SBSconfig: currentStepIndex, visibleItems, currentMaxNum и т.д.
     sendSBS_ClearEvent(SBSeventTarget);     // 3. разослать sbs_clear: режимы визуализации стирают свой DOM/данные
-    setRunButtonMode(false);                // 4. вернуть кнопку Play/Pause в состояние «Запустить»
+    // setRunButtonMode(false);                // 4. вернуть кнопку Play/Pause в состояние «Запустить»
 }
 
 // ------ ПОЛНЫЙ СБРОС СЕССИИ: ВЫВОД + РЕЗУЛЬТАТ ВЫЧИСЛЕНИЙ ------ \\

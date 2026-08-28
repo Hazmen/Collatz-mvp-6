@@ -35,6 +35,9 @@ export const SBSconfig = {
 
     batchStartIndex: 0,
     batchEndIndex: 0,
+
+    removeBatchStartIndex: 0,
+    removeBatchEndIndex: 0,
     // ... and so on
 };
 

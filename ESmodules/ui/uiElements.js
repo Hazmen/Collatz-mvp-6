@@ -11,6 +11,7 @@ export const skipButton = $('.proc-skip');
 export const nextButton = $('.proc-showNext');
 export const backButton = $('.proc-delLast');
 
+export const manualBtns_container = $('.sbs-manual_controllers')
 
 
 // input controls
@@ -26,6 +27,7 @@ export const txtList_sidebar = $$$('seqList_sidebar_btn');
     
 // idk i need style values for smth
 export let seqListObj_Font = $('.txtList-obj_font');
+export const txtList_num = $('.txtList-num');
 export const seqListContainer = $('.sequence-list-container');
 
 

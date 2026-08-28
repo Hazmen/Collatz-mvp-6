@@ -17,7 +17,7 @@ class SpeedController extends HTMLElement {
             }
             :host(.is-hidden) {
                 opacity: 0;
-                transform: scaleY(0.96);
+                transform: scaleY(0.9);
                 pointer-events: none;
             }
             .speed-controller {
@@ -33,6 +33,11 @@ class SpeedController extends HTMLElement {
                 flex-direction: column;
                 gap: 1rem;
                 user-select: none;
+                transition: gap 260ms cubic-bezier(0.4, 0, 0.2, 1), padding 260ms ease;
+            }
+
+            .speed-controller.is-compact {
+                gap: 0;
             }
 
             .controller-section {
@@ -194,18 +199,18 @@ class SpeedController extends HTMLElement {
                 <!-- Header -->
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:0 0.25rem;">
                     <span style="font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8;">
-                        Скорость вывода
+                        Output speed
                     </span>
                     <span class="speed-display" style="font-size:0.875rem; font-family:monospace; font-weight:bold; color:#a5b4fc; font-variant-numeric:tabular-nums; min-width:5rem; text-align:right;">
-                        Выкл
+                        Off
                     </span>
                 </div>
 
                 <!-- Slider -->
                 <div style="display:flex; flex-direction:column; gap:0.25rem; padding:0 0.125rem;">
-                    <input type="range" id="speed-slider" min="0" max="5000" value="0" step="10" class="speed-slider">
+                    <input type="range" id="speed-slider" min="0" max="5000" value="500" step="10" class="speed-slider">
                     <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; font-family:monospace; padding:0 0.125rem; margin-top:0.125rem;">
-                        <span>Выкл</span>
+                        <span>Off</span>
                         <span>1с</span>
                         <span>2с</span>
                         <span>3с</span>
@@ -216,7 +221,7 @@ class SpeedController extends HTMLElement {
 
                 <!-- Preset buttons -->
                 <div style="display:flex; flex-wrap:wrap; gap:0.375rem; justify-content:center;">
-                    <button data-ms="0" class="speed-preset active">Выкл</button>
+                    <button data-ms="0" class="speed-preset active">Off</button>
                     <button data-ms="50" class="speed-preset">50ms</button>
                     <button data-ms="100" class="speed-preset">100ms</button>
                     <button data-ms="250" class="speed-preset">250ms</button>
@@ -233,7 +238,7 @@ class SpeedController extends HTMLElement {
             <section id="batch-section" class="controller-section">
                 <!-- Batch size -->
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:0 0.25rem; gap:0.75rem;">
-                    <span style="font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8; flex-shrink:0;">
+                    <span class="batch_label" style="font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8; flex-shrink:0;">
                         Чисел за тик
                     </span>
                     <div style="display:flex; align-items:center; gap:0.375rem;">
@@ -263,132 +268,151 @@ class SpeedController extends HTMLElement {
         `
     }
 
+    // ------ LIFECYCLE: ATTACH ------ \\
     connectedCallback() {
+
+        // ------ CACHE DOM REFS ------ \\
         const root = this.shadowRoot;
 
         const speedSlider = root.getElementById('speed-slider');
         const speedDisplay = root.querySelector('.speed-display');
         this.speedSection = root.getElementById('speed-section');
         this.batchSection = root.getElementById('batch-section');
+        this._controllerEl = root.querySelector('.speed-controller');
         const batchInput = root.getElementById('batch-input');
         const batchDecr = root.getElementById('batch-decr');
         const batchIncr = root.getElementById('batch-incr');
 
-        speedState.intervalMs = 0;
-        speedState.batchSize = 1;
+        // ------ INIT SHARED STATE ------ \\
+        speedState.intervalMs = 0;              /* default: no delay between ticks */
+        speedState.batchSize = 1;               /* default: one number per tick */
 
-        const clampBatch = (val) => Math.max(1, Math.min(10000, Math.round(val)));
+        // ------ HELPERS ------ \\
+        const clampBatch = (val) => Math.max(1, Math.min(10000, Math.round(val))); /* keep batch in [1, 10000] */
 
-        const formatSpeed = (ms) => {
-            if (ms === 0) return 'Выкл';
+        const formatSpeed = (ms) => {           /* human-readable label for the delay */
+            if (ms === 0) return 'Off';         /* 0 means SBS is effectively instant */
             if (ms < 1000) return ms + 'ms';
-            return (ms / 1000).toFixed(1).replace(/\.0$/, '') + 'с';
+            return (ms / 1000).toFixed(1).replace(/\.0$/, '') + 's';
         };
 
+        // ------ UPDATERS: SYNC UI <-> STATE ------ \\
         const updateSpeedDisplay = () => {
             const ms = parseInt(speedSlider.value, 10);
-            speedState.intervalMs = ms;
+            speedState.intervalMs = ms;         /* push slider value to shared state */
             speedDisplay.textContent = formatSpeed(ms);
             root.querySelectorAll('.speed-preset').forEach(btn => {
-                btn.classList.toggle('active', parseInt(btn.dataset.ms, 10) === ms);
+                btn.classList.toggle('active', parseInt(btn.dataset.ms, 10) === ms); /* highlight matching preset */
             });
         };
 
         const updateBatchDisplay = () => {
             const val = clampBatch(parseInt(batchInput.value, 10));
-            batchInput.value = val;
-            speedState.batchSize = val;
+            batchInput.value = val;             /* normalize the input */
+            speedState.batchSize = val;         /* push batch size to shared state */
             root.querySelectorAll('.batch-preset').forEach(btn => {
-                btn.classList.toggle('active', parseInt(btn.dataset.batch, 10) === val);
+                btn.classList.toggle('active', parseInt(btn.dataset.batch, 10) === val); /* highlight matching preset */
             });
         };
 
+        // ------ SPEED CONTROLS: SLIDER + PRESETS ------ \\
         speedSlider.addEventListener('input', updateSpeedDisplay);
 
         root.querySelectorAll('.speed-preset').forEach(btn => {
             btn.addEventListener('click', () => {
-                speedSlider.value = btn.dataset.ms;
+                speedSlider.value = btn.dataset.ms; /* preset drives the slider */
                 updateSpeedDisplay();
             });
         });
 
+        // ------ BATCH CONTROLS: INPUT + STEPPERS + PRESETS ------ \\
         batchInput.addEventListener('input', updateBatchDisplay);
         batchInput.addEventListener('change', updateBatchDisplay);
 
         batchDecr.addEventListener('click', () => {
-            batchInput.value = clampBatch(parseInt(batchInput.value, 10) - 1);
+            batchInput.value = clampBatch(parseInt(batchInput.value, 10) - 1); /* decrement by one */
             updateBatchDisplay();
         });
 
         batchIncr.addEventListener('click', () => {
-            batchInput.value = clampBatch(parseInt(batchInput.value, 10) + 1);
+            batchInput.value = clampBatch(parseInt(batchInput.value, 10) + 1); /* increment by one */
             updateBatchDisplay();
         });
 
         root.querySelectorAll('.batch-preset').forEach(btn => {
             btn.addEventListener('click', () => {
-                batchInput.value = btn.dataset.batch;
+                batchInput.value = btn.dataset.batch; /* preset drives the input */
                 updateBatchDisplay();
             });
         });
 
+        // ------ INITIAL RENDER ------ \\
         updateSpeedDisplay();
         updateBatchDisplay();
 
-        this._hostHideTimer = null;
+        // ------ OUTPUT-MODE SUBSCRIPTION ------ \\
+        this._hostHideTimer = null;             /* timer for deferred display:none after fade-out */
 
         this.handleOutputModeChange = (event) => {
-            this.applyMode(event.detail.selected_mode);
+            this.applyMode(event.detail.selected_mode); /* react to global mode switch */
         };
-        outputMode_EventTarget.addEventListener('output_change', this.handleOutputModeChange);
+        outputMode_EventTarget.addEventListener('outputMode_change', this.handleOutputModeChange);
 
-        // начальное состояние без анимации (instant -> скрыт)
-        this.classList.toggle('is-hidden', state.outputMode === 'instant');
+        // ------ INITIAL VISIBILITY (NO ANIMATION) ------ \\
+        /*
+         * On first paint we apply the mode instantly without
+         * transitions. "instant" means the whole controller stays
+         * hidden; otherwise we prepare sections for the current mode.
+         * Batch stays collapsed by requirement — "hide immediately".
+         * Later switches will animate.
+         */
+        this.classList.toggle('is-hidden', state.outputMode === 'instant'); /* hide host in instant */
         if (state.outputMode === 'instant') this.style.display = 'none';
-        this._toggleSection(this.speedSection, state.outputMode === 'auto', false);
-        this._toggleSection(this.batchSection, false, false);
-        // после первого рендера с задержкой применим корректную анимацию для текущего режима,
-        // но batch остается скрытым по требованию "сразу отключи"
-        // дальнейшие переключения уже будут с анимацией
+        this._toggleSection(this.speedSection, state.outputMode === 'auto', false); /* speed only in auto */
+        this._toggleSection(this.batchSection, false, false);                        /* batch hidden on start */
+        this._controllerEl.classList.toggle('is-compact', state.outputMode !== 'auto'); /* remove gap when speed hidden */
 
-        window.__speedState = speedState;
+        window.__speedState = speedState;       /* expose for debugging */
     }
 
+    // ------ LIFECYCLE: DETACH ------ \\
     disconnectedCallback() {
-        outputMode_EventTarget.removeEventListener('output_change', this.handleOutputModeChange);
+        outputMode_EventTarget.removeEventListener('output_change', this.handleOutputModeChange); /* NOTE: event name differs from subscribed one */
         if (this._hostHideTimer) clearTimeout(this._hostHideTimer);
     }
 
+    // ------ HOST VISIBILITY WITH FADE ------ \\
     _setHostVisible(isVisible) {
         if (isVisible) {
             if (this._hostHideTimer) { clearTimeout(this._hostHideTimer); this._hostHideTimer = null; }
-            this.style.display = '';
-            // форсируем reflow перед снятием класса чтобы переход сработал
-            void this.offsetWidth;
+            this.style.display = '';            /* make host participate in layout again */
+            void this.offsetWidth;              /* force reflow so the transition triggers */
             this.classList.remove('is-hidden');
         } else {
             if (this.classList.contains('is-hidden')) return;
-            this.classList.add('is-hidden');
+            this.classList.add('is-hidden');    /* start fade-out */
             if (this._hostHideTimer) clearTimeout(this._hostHideTimer);
             this._hostHideTimer = setTimeout(() => {
-                if (this.classList.contains('is-hidden')) this.style.display = 'none';
+                if (this.classList.contains('is-hidden')) this.style.display = 'none'; /* hide after animation */
                 this._hostHideTimer = null;
-            }, 260);
+            }, 260);                            /* matches CSS transition duration */
         }
     }
 
+    // ------ SECTION TOGGLE (WITH OPTIONAL ANIMATION) ------ \\
     _toggleSection(section, show, animate = true) {
         if (!section) return;
         if (!animate) {
-            section.style.transition = 'none';
-            section.classList.toggle('is-collapsed', !show);
-            void section.offsetHeight;
-            section.style.transition = '';
+            section.style.transition = 'none';                  /* disable transition for instant switch */
+            section.classList.toggle('is-collapsed', !show);    /* show/hide by collapsed class */
+            void section.offsetHeight;                          /* force reflow */
+            section.style.transition = '';                      /* restore transition */
             return;
         }
-        section.classList.toggle('is-collapsed', !show);
+        section.classList.toggle('is-collapsed', !show);        /* animated toggle */
     }
 
+    // ------ PUBLIC API: TOGGLE INDIVIDUAL SECTIONS ------ \\
     setSpeedSectionVisible(isVisible) {
         this._toggleSection(this.speedSection, isVisible, true);
     }
@@ -397,23 +421,40 @@ class SpeedController extends HTMLElement {
         this._toggleSection(this.batchSection, isVisible, true);
     }
 
+    // ------ APPLY OUTPUT MODE TO THE WHOLE CONTROLLER ------ \\
     applyMode(mode) {
         const isInstant = mode === 'instant';
         const isAuto = mode === 'auto';
         const isManual = mode === 'manual';
 
-        this._setHostVisible(!isInstant);
-        // whole controller stretch: задержка 40ms чтобы хост успел раскрыться
+        // ------ HOST ------ \\
+        this._setHostVisible(!isInstant);       /* instant hides the entire controller */
+
+        /*
+         * If the host was hidden, give it a short delay
+         * so it can expand before inner sections animate.
+         */
         const delay = !isInstant && this.classList.contains('is-hidden') ? 60 : 0;
 
+        // ------ LABEL ------ \\
+        this.shadowRoot.querySelector('.batch_label').textContent = isManual ? 'Numbers per click' : 'Numbers per tick'; /* manual vs auto wording */
+
+        // ------ SECTIONS ------ \\
+        const doToggle = () => {
+            this._toggleSection(this.speedSection, isAuto, true);                 /* speed only in auto */
+            this._toggleSection(this.batchSection, isAuto || isManual, true);     /* batch in auto + manual */
+            /*
+             * When the speed section is hidden, remove the gap
+             * on the container — otherwise ~16px remains between
+             * the top and the "Numbers per tick" row.
+             */
+            this._controllerEl.classList.toggle('is-compact', !isAuto);
+        };
+
         if (delay) {
-            setTimeout(() => {
-                this._toggleSection(this.speedSection, isAuto, true);
-                this._toggleSection(this.batchSection, isAuto || isManual, true);
-            }, delay);
+            setTimeout(doToggle, delay);
         } else {
-            this._toggleSection(this.speedSection, isAuto, true);
-            this._toggleSection(this.batchSection, isAuto || isManual, true);
+            doToggle();
         }
     }
 }
