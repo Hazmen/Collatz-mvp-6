@@ -27,6 +27,17 @@ SBSeventTarget.addEventListener('sbs_batch', (event) => {
     }
 });
 
+SBSeventTarget.addEventListener('sbs_removeBatch', (event) => {
+    const { startIndex, endIndex } = event.detail;
+    const list = seqList_Elements.txtList;
+
+    for (let i = endIndex; i >= startIndex; i--) {
+        list.removeChild(list.children[i]);
+    }
+
+    if (!userScrolled) cont.scrollTop = cont.scrollHeight;
+});
+
 SBSeventTarget.addEventListener('sbs_skip', (event) => {
     const { batch, startIndex } = event.detail;
 
@@ -44,4 +55,3 @@ SBSeventTarget.addEventListener('sbs_clear', () => {
         seqList_Elements.txtList.innerHTML = '';
     }
 });
-

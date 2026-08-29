@@ -70,6 +70,8 @@ export function sendSBS_DoneEvent(target) {
     });
 
     target.dispatchEvent(SBSDoneEvent);
+
+    console.log('Done!');
 };
 
 export function sendSBS_ClearEvent(target) {

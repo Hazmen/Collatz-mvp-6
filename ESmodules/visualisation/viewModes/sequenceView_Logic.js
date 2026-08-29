@@ -74,5 +74,3 @@ export function txtListObj_create(parent, index, number) {
 
     return txtList_el;
 };
-
-
