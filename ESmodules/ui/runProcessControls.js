@@ -9,133 +9,185 @@ import { guard } from "./runProcessControls_guard.js";
 
 // -------------- ENTRY POINT: WIRE UP ALL RUN/SKIP/RESET CONTROLS -------------- \\
 export function RunSequenceCalc() {
-    
-    
-    // внутри RunSequenceCalc()
-    function startRunProcess() { 
-        if (state.outputMode === 'manual') return;
 
-        // -------------- PRE-CHECK LAYER: VALIDATE NEW INPUT -------------- \\
-        /* this layer runs only when starting a brand-new calculation */
+    // ===================================================================== \\
+    //  GUARDS (pre-cached checks for startRunProcess)                       \\
+    // ===================================================================== \\
+    // All guards come from runProcessControls_guard.js — single source
+    // of truth for "can pause / resume / replay". Inside startRunProcess
+    // they are cached at the top to avoid re-calling guard on every branch.
 
-        if (!guard.validateInput()) {
+    // ===================================================================== \\
+    //  CORE PROCESS FUNCTIONS (run / skip / reset / manual batch)           \\
+    // ===================================================================== \\
+
+    // ------ MAIN RUN PROCESS (auto/instant) ------ \\
+    function startRunProcess() {
+
+        // ------ CACHE GUARDS ------ \\
+        const inputMatchesActive = guard.getInputMatchesActive();
+        const is_ValidInput = guard.validateInput();
+        const isNewInput_AfterDone = guard.isNewInput_AfterDone();
+
+        const canReplay_SameInput = guard.canReplay_SameInput();
+        const can_Pause = guard.sbsAuto_canPause();
+        const can_Resume = guard.sbsAuto_canResume();
+
+        if (state.outputMode === 'manual') return;              /* manual is driven by +/-, not Run */
+
+        // ------ PRE-CHECK: VALIDATE INPUT ------ \\
+        if (!is_ValidInput) {
             alert('Error! Your input must contain only numbers and cannot be empty!');
             /* ErrorWindowAppend(); <-- For the future */
-            return; 
+            return;
         }
 
-        // -------------- GUARD: WORKER IS BUSY -------------- \\
-        /* SBS regulating does not depend on the input validity */
-        if (state.isComputing) return;                  /* don't act while worker is busy */
+        // ------ GUARD: WORKER BUSY ------ \\
+        if (state.isComputing) return;                          /* don't act while worker is busy */
 
-        // -------------- TOGGLE OFF: CURRENTLY RUNNING -------------- \\
-        if (guard.sbsAuto_canPause()) {
-            pauseSBS();                                 /* pause the SBS output */
+        // ------ TOGGLE OFF: PAUSE ------ \\
+        if (can_Pause) {
+            pauseSBS();                                         /* pause the SBS output */
             setRunButtonMode(false);
             return;
         }
 
-        // -------------- DOES THE INPUT STILL MATCH THE ACTIVE RUN? -------------- \\
-        // -------------- SAME NUMBER, ALREADY FINISHED: REPLAY WITHOUT RE-COMPUTING -------------- \\
-        // -------------- ----------- IF NOT: COMPLETE RESET ----------- -------------- \\
-
-        if (guard.canReplay_SameInput()) {
-            resetOutputOnly();                            /* clear the output session */
+        // ------ REPLAY SAME NUMBER / NEW NUMBER AFTER DONE ------ \\
+        if (canReplay_SameInput) {
+            resetOutputOnly();                                  /* clear output, keep result */
             setRunButtonMode(true);
             startSBS();
             return;
-        } 
+        }
 
-        if (guard.isNewInputAfterDone()) {
-            resetSession();           
+        if (isNewInput_AfterDone) {
+            resetSession();
             setStateValue('activeInputValue', BigInt(mainInputField.value));
             workerManager_Recieve(getSpecificState('activeInputValue'));
             setRunButtonMode(true);
             return;
         }
 
-        // -------------- TOGGLE ON: RESUME FROM PAUSE (only if the number is the same) -------------- \\
-        if (guard.sbsAuto_canResume()) {
-            resumeSBS();                                /* continue from the last index */
+        // ------ RESUME FROM PAUSE ------ \\
+        if (can_Resume) {
+            resumeSBS();                                        /* continue from last index */
             setRunButtonMode(true);
             return;
         }
 
-        // -------------- START NEW CALCULATION -------------- \\
-        resetSession();                            /* wipe previous data/DOM before a new number */
+        // ------ START NEW CALCULATION ------ \\
+        resetSession();                                         /* wipe previous data/DOM */
 
-        setStateValue('activeInputValue', BigInt(mainInputField.value)); /* store the input as BigInt */
+        setStateValue('activeInputValue', BigInt(mainInputField.value)); /* store as BigInt */
+        workerManager_Recieve(getSpecificState('activeInputValue'));     /* send to worker */
+        setRunButtonMode(true);
+    }
 
-        /* send the active input value to the Worker Manager */
-        workerManager_Recieve(getSpecificState('activeInputValue'));
-        /* Worker Manager is going to send our Input Value to Worker :D */
+    // ------ SKIP PROCESS ------ \\
+    function skipProcess() {
+        if (state.isComputing) return;                          /* don't skip while worker is busy */
+        /* nothing to skip: never started, nothing shown, no data */
+        if (!SBSconfig.isRunning && SBSconfig.currentStepIndex === 0 && !SBSconfig.doneRunning && state.workerResult.length === 0) return;
 
-        setRunButtonMode(true);     
-    }  
+        if (state.outputMode === 'instant' && guard.canReplay_SameInput()) {
+            resetOutputOnly();                                  /* clear output for replay */
+            setRunButtonMode(true);
+            skipSBS();                                          /* show all at once */
+            setRunButtonMode(false);
+            return;
+        }
 
+        skipSBS();                                              /* show all remaining items at once */
+        setRunButtonMode(false);
+    }
+
+    // ------ RESET PROCESS ------ \\
+    function resetProcess() {
+        if (state.isComputing) return;                          /* don't reset while counting */
+        setRunButtonMode(false);
+        resetSession();                                         /* clear output and result */
+    }
+
+    // ------ MANUAL: ADD ONE BATCH (doubles as Run in manual) ------ \\
+    function startManualAddProcess() {
+        if (state.outputMode !== 'manual') return;
+        if (state.isComputing) return;
+
+        if (!guard.validateInput()) {
+            alert('Error! Your input must contain only numbers and cannot be empty!');
+            return;
+        }
+
+        const inputMatchesActive = guard.getInputMatchesActive();
+        const hasResult = state.workerResult.length > 0;
+
+        // ------ START BRAND-NEW CALCULATION ------ \\
+        if (!hasResult || !inputMatchesActive) {
+            resetSession();
+            setStateValue('activeInputValue', BigInt(mainInputField.value));
+            workerManager_Recieve(getSpecificState('activeInputValue'));
+            return;
+        }
+
+        // ------ REPLAY AFTER FINISH: CLEAR OUTPUT THEN SHOW FIRST BATCH ------ \\
+        if (SBSconfig.doneRunning) {
+            resetOutputOnly();
+        }
+
+        addOneBatchSBS();                                       /* show next batch manually */
+    }
+
+    // ------ MANUAL: REMOVE ONE BATCH ------ \\
+    function removeOneBatchProcess() {
+        if (state.outputMode !== 'manual') return;
+        removeOneBatchSBS();                                    /* hide last shown batch */
+    }
+
+    // ===================================================================== \\
+    //  EVENT LISTENERS (all wiring in one place, after the functions)       \\
+    // ===================================================================== \\
+
+    // ------ RUN BUTTON + SPACE ------ \\
     runProcess_Elements.runButton.addEventListener('click', (e) => {
-        if (state.outputMode === 'manual') return;
+        if (state.outputMode === 'instant') {e.preventDefault(); skipProcess();}
         startRunProcess();
     });
     document.addEventListener('keydown', (e) => {
-        if (state.outputMode === 'manual') return;
-        if (e.code === 'Space' && !e.repeat) { e.preventDefault(); startRunProcess(); }
+        if (state.outputMode === 'manual') return;              /* manual ignores global Run */
+        if (e.code === 'Space' && !e.repeat) { 
+            if (state.outputMode === 'instant') {e.preventDefault(); skipProcess();}
+            e.preventDefault(); startRunProcess(); 
+        }
     });
 
-    // -------------- AUTO-RETURN BUTTON WHEN OUTPUT FINISHES -------------- \\
-    /* when the output finishes by itself (normal way or via skip) — */
-    /* the button must return to "Run" without the user's help       */
+    // ------ AUTO-RETURN BUTTON WHEN OUTPUT FINISHES ------ \\
     SBSeventTarget.addEventListener('sbs_done', () => {
-        setRunButtonMode(false);
+        setRunButtonMode(false);                                /* back to "Run" when done */
     });
 
-    // -------------- SKIP BUTTON -------------- \\
-    function skipProcess() {
-        if (state.isComputing) return;                  /* don't skip while worker is busy */
-        /* nothing to skip: never started, nothing shown yet and no data at all */
-        if (!SBSconfig.isRunning && SBSconfig.currentStepIndex === 0 && !SBSconfig.doneRunning && state.workerResult.length === 0) return;
-
-        skipSBS();                                      /* show all remaining items at once */
-        setRunButtonMode(false);
-    }
-
-
+    // ------ SKIP BUTTON + F ------ \\
     runProcess_Elements.skipButton.addEventListener('click', skipProcess);
     document.addEventListener('keydown', (e) => {
-        if (e.code === 'KeyF' && !e.repeat) skipProcess(); 
+        if (e.code === 'KeyF' && !e.repeat) skipProcess();
     });
 
-    // -------------- RESET BUTTON -------------- \\
-    function resetProcess() {
-        /* don't reset while worker is counting — nobody would stop it */
-        if (state.isComputing) return;
-    
-        resetSession();                            /* clear the output session */
-    }
-
+    // ------ RESET BUTTON + R ------ \\
     runProcess_Elements.resetButton.addEventListener('click', resetProcess);
     document.addEventListener('keydown', (e) => {
-        if (e.code === 'KeyR' && !e.repeat) resetProcess(); 
+        if (e.code === 'KeyR' && !e.repeat) resetProcess();
     });
 
-    // -------------- SBS MANUAL CONTROLS -------------- \\
-    // -------------- 1. SHOW NEXT BATCH -------------- \\
-    runProcess_Elements.nextButton.addEventListener('click', () => {
-        if (!state.outputMode === 'manual') return;
-        addOneBatchSBS();
-    });
+    // ------ MANUAL: NEXT BATCH (+) + Z ------ \\
+    runProcess_Elements.nextButton.addEventListener('click', startManualAddProcess);
     document.addEventListener('keydown', (e) => {
-        if (state.outputMode != 'manual') return;
-        if (e.code === 'KeyZ' && !e.repeat) addOneBatchSBS(); 
-    }); 
+        if (state.outputMode !== 'manual') return;
+        if (e.code === 'KeyZ' && !e.repeat) startManualAddProcess();
+    });
 
-    // -------------- 2. REMOVE ONE BATCH -------------- \\
-    runProcess_Elements.backButton.addEventListener('click', () => {
-        if (!state.outputMode === 'manual') return;
-        removeOneBatchSBS();
-    });
+    // ------ MANUAL: BACK BATCH (-) + X ------ \\
+    runProcess_Elements.backButton.addEventListener('click', removeOneBatchProcess);
     document.addEventListener('keydown', (e) => {
-        if (state.outputMode != 'manual') return;
-        if (e.code === 'KeyX' && !e.repeat) removeOneBatchSBS(); 
-    }); 
+        if (state.outputMode !== 'manual') return;
+        if (e.code === 'KeyX' && !e.repeat) removeOneBatchProcess();
+    });
 }

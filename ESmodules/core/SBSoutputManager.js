@@ -171,6 +171,8 @@ export function startSBS() {
 // ------ ENTRY POINT: connect worker completion to SBS start ------ \\
 export function SBSoutput() {
     stateTarget.addEventListener('collatz_done', () => {
+        if (state.outputMode === 'manual') return;     /* manual: user drives output via + */
+        if (state.outputMode === 'instant') {skipSBS(); return;}
         startSBS();
     });
 }

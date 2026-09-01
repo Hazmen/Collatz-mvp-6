@@ -21,7 +21,6 @@ export function resetState() {
   const initialStateConfig = {
     activeInputValue: 0n,
     inputError: false,
-    outputMode: 'instant',
     isComputing: false,
     hasResult: false,
     workerResult: [],

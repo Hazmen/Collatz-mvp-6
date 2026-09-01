@@ -17,14 +17,6 @@ function sbsAuto_canPause() {
     return SBSconfig.isRunning === true;
 }
 
-function canReplay_SameInput() {
-    return getInputMatchesActive() && SBSconfig.doneRunning === true;
-}
-
-function isNewInputAfterDone() {
-    return !getInputMatchesActive() && SBSconfig.doneRunning === true;
-}
-
 function sbsAuto_canResume() {
     const hasResult = state.workerResult.length > 0;
     const canResume = hasResult &&
@@ -34,10 +26,19 @@ function sbsAuto_canResume() {
     return getInputMatchesActive() && canResume;
 }
 
+function canReplay_SameInput() {
+    return getInputMatchesActive() && SBSconfig.doneRunning === true;
+}
+
+function isNewInput_AfterDone() {
+    return !getInputMatchesActive() && SBSconfig.doneRunning === true;
+}
+
 export const guard = {
     validateInput,
     sbsAuto_canPause,
     canReplay_SameInput,
-    isNewInputAfterDone,
-    sbsAuto_canResume
+    isNewInput_AfterDone,
+    sbsAuto_canResume,
+    getInputMatchesActive
 };

@@ -326,11 +326,49 @@ class OutputModeControl extends HTMLElement {
         } else {
             this.applyState(false);                 /* single "Step By Step" label */
         }
+
+        // ------ HOTKEYS: 1/2/3 -> INSTANT / AUTO / MANUAL ------ \\
+        /* ------ quick mode switch mirrors click handlers with animation ------ */
+        this._onHotkey = (e) => {
+            // ------ IGNORE REPEATS & MODIFIERS ------ \\
+            if (e.repeat || e.ctrlKey || e.altKey || e.metaKey) return; /* hold / combos should not trigger */
+
+            // ------ IGNORE TYPING IN EDITABLE FIELDS ------ \\
+            const t = e.target;                                           /* event origin */
+            if (t instanceof HTMLElement) {                                 /* ensure DOM element */
+                if (t.closest('input, textarea, select, [contenteditable]')) return; /* inside form field -> ignore */
+                if (t.isContentEditable) return;                            /* rich text editing -> ignore */
+            }
+            // ------ ALSO CHECK ACTIVE ELEMENT (SHADOW DOM FALLBACK) ------ \\
+            const active = document.activeElement;                          /* fallback for composed path */
+            if (active instanceof HTMLElement) {                              /* ensure element */
+                if (active.closest('input, textarea, select, [contenteditable]')) return; /* focused field -> ignore */
+                if (active.isContentEditable) return;                         /* focused editable -> ignore */
+            }
+
+            // ------ KEY 1: INSTANT ------ \\
+            if (e.key === '1') {                                              /* digit 1 */
+                if (this._mode === 'instant') return;                         /* already there */
+                this.collapseSBS(true);                                       /* collapse to Instant */
+            } else if (e.key === '2') {                                       /* digit 2 */
+                // ------ KEY 2: AUTO ------ \\
+                if (this._mode === 'auto') return;                            /* already Auto, no-op */
+                if (this._mode === 'instant') this.expandSBS('auto', true);   /* instant -> expand as Auto */
+                else if (this._mode === 'manual') this.selectSbsChild('auto');/* manual -> switch to Auto */
+            } else if (e.key === '3') {                                       /* digit 3 */
+                // ------ KEY 3: MANUAL ------ \\
+                if (this._mode === 'manual') return;                          /* already Manual, no-op */
+                if (this._mode === 'instant') this.expandSBS('manual', true); /* instant -> expand as Manual */
+                else if (this._mode === 'auto') this.selectSbsChild('manual');/* auto -> switch to Manual */
+            }
+        };
+        window.addEventListener('keydown', this._onHotkey);                   /* global hotkeys */
     }
 
     // ------ LIFECYCLE: DETACH ------ \\
     disconnectedCallback() {
         if (this.resizeObserver) this.resizeObserver.disconnect();
+        if (this._onHotkey) window.removeEventListener('keydown', this._onHotkey); /* cleanup hotkeys */
     }
 
     // ------ MODE ACCESSOR ------ \\
