@@ -45,7 +45,30 @@ export function RunSequenceCalc() {
         // ------ GUARD: WORKER BUSY ------ \\
         if (state.isComputing) return;                          /* don't act while worker is busy */
 
-        // ------ TOGGLE OFF: PAUSE ------ \\
+        // ------ INSTANT: Run doubles as Skip when output is active ------ \\
+        // In instant the only visible run control is Run. If a computation
+        // is staged (running or paused with pending batches) Run must flush it.
+        if (state.outputMode === 'instant') {
+            const hasPending = state.workerResult.length > 0 && !SBSconfig.doneRunning && SBSconfig.currentStepIndex < state.workerResult.length;
+            if (SBSconfig.isRunning || hasPending) {
+                skipSBS();
+                setRunButtonMode(false);
+                return;
+            }
+            if (canReplay_SameInput) {
+                resetOutputOnly();
+                skipSBS();
+                setRunButtonMode(false);
+                return;
+            }
+            if (can_Resume) {
+                skipSBS();
+                setRunButtonMode(false);
+                return;
+            }
+        }
+
+        // ------ TOGGLE OFF: PAUSE (auto only; instant handled above) ------ \\
         if (can_Pause) {
             pauseSBS();                                         /* pause the SBS output */
             setRunButtonMode(false);
@@ -80,7 +103,7 @@ export function RunSequenceCalc() {
 
         setStateValue('activeInputValue', BigInt(mainInputField.value)); /* store as BigInt */
         workerManager_Recieve(getSpecificState('activeInputValue'));     /* send to worker */
-        setRunButtonMode(true);
+        setRunButtonMode(false);
     }
 
     // ------ SKIP PROCESS ------ \\
@@ -91,7 +114,6 @@ export function RunSequenceCalc() {
 
         if (state.outputMode === 'instant' && guard.canReplay_SameInput()) {
             resetOutputOnly();                                  /* clear output for replay */
-            setRunButtonMode(true);
             skipSBS();                                          /* show all at once */
             setRunButtonMode(false);
             return;
@@ -148,15 +170,14 @@ export function RunSequenceCalc() {
     // ===================================================================== \\
 
     // ------ RUN BUTTON + SPACE ------ \\
-    runProcess_Elements.runButton.addEventListener('click', (e) => {
-        if (state.outputMode === 'instant') {e.preventDefault(); skipProcess();}
+    runProcess_Elements.runButton.addEventListener('click', () => {
         startRunProcess();
     });
     document.addEventListener('keydown', (e) => {
         if (state.outputMode === 'manual') return;              /* manual ignores global Run */
         if (e.code === 'Space' && !e.repeat) { 
-            if (state.outputMode === 'instant') {e.preventDefault(); skipProcess();}
-            e.preventDefault(); startRunProcess(); 
+            e.preventDefault(); 
+            startRunProcess(); 
         }
     });
 
@@ -166,8 +187,12 @@ export function RunSequenceCalc() {
     });
 
     // ------ SKIP BUTTON + F ------ \\
-    runProcess_Elements.skipButton.addEventListener('click', skipProcess);
+    runProcess_Elements.skipButton.addEventListener('click', () => {
+        if (state.outputMode === 'instant') return;              /* manual ignores global Run */
+        skipProcess();
+    });
     document.addEventListener('keydown', (e) => {
+        if (state.outputMode === 'instant') return;              /* manual ignores global Run */
         if (e.code === 'KeyF' && !e.repeat) skipProcess();
     });
 
