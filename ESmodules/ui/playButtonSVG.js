@@ -1,4 +1,4 @@
-import { SBSconfig } from "../state/state.js";
+import { SBSconfig, state, stateTarget } from "../state/state.js";
 import { runButton } from "./uiElements.js";
 
 export function PlayOrPause() {
@@ -30,3 +30,36 @@ export function setRunButtonMode(isPlaying) {
         runButton.title = "Start";        
     }
 }
+
+export function setRunLoading() {
+    if(!runButton) return;
+    if(!runButton.dataset.wasLocked)
+    runButton.dataset.wasLocked = runButton.classList.contains('locked') ? '1' : '0';
+
+    runButton.innerHTML = `<img src="assets/media/svgs/ring-resize.svg" width="32" height="32" alt="" style="display:block">`;
+    runButton.disabled = true;
+
+    runButton.classList.add('locked');
+    runButton.setAttribute('aria-busy','true');
+}
+
+export function clearRunLoading() {
+    if(!runButton) return;
+    runButton.disabled = false;
+
+    runButton.removeAttribute('aria-busy');
+    if(runButton.dataset.wasLocked === '0') runButton.classList.remove('locked');
+
+    delete runButton.dataset.wasLocked;
+    // иконку ставит слушатель collatz_done ниже (auto -> pause), не здесь
+} 
+
+stateTarget.addEventListener('collatz_done', ()=>{ 
+    clearRunLoading(); 
+    if(state.outputMode === 'auto') setRunButtonMode(true); 
+});
+
+stateTarget.addEventListener('collatz_error', ()=>{ 
+    clearRunLoading(); 
+    setRunButtonMode(false); 
+});

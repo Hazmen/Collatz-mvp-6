@@ -24,9 +24,16 @@ import { clearSBSTimer, SBSeventTarget } from "./SBSoutputManager.js";
 export { resetState, resetSBS };
 
 // ------ ОЧИСТКА ТОЛЬКО ВЫВОДА (SBS), РЕЗУЛЬТАТ ВЫЧИСЛЕНИЙ ЖИВ ------ \\
-// Когда использовать: реплей того же числа после завершения
-// (SBSconfig.doneRunning === true), когда workerResult уже посчитан
-// и пересчитывать его не нужно — данные остаются для быстрого повтора.
+// Когда использовать:
+//   1) реплей того же числа после завершения (doneRunning === true),
+//      когда workerResult уже посчитан и пересчитывать не нужно;
+//   2) кнопка Reset — теперь это "мягкий" сброс: чистится только
+//      SBSconfig + DOM (sbs_clear), а workerResult/activeInputValue
+//      остаются для мгновенного повтора того же числа (lazy reset).
+//      Полный сброс сессии (resetState) откладывается до следующего
+//      запуска с ДРУГИМ числом — его делают ветки startRunProcess /
+//      startManualAddProcess, которые вызывают resetSession() прямо
+//      перед workerManager_Recieve() когда !inputMatchesActive.
 export function resetOutputOnly() {
     clearSBSTimer();                        // 1. отменить уже запланированный тик SBS (если есть)
     resetSBS();                             // 2. обнулить SBSconfig: currentStepIndex, visibleItems, currentMaxNum и т.д.
@@ -35,8 +42,10 @@ export function resetOutputOnly() {
 }
 
 // ------ ПОЛНЫЙ СБРОС СЕССИИ: ВЫВОД + РЕЗУЛЬТАТ ВЫЧИСЛЕНИЙ ------ \\
-// Когда использовать: пользователь ввёл НОВОЕ число и нажал Play,
-// или нажата кнопка Reset. Стирается всё, включая workerResult.
+// Когда использовать: пользователь ввёл НОВОЕ число и нажал Play
+// (или + в manual с другим числом). Стирается всё, включая workerResult.
+// Вызывается лениво — только перед чистым новым запуском, когда
+// BigInt(input) !== activeInputValue. Кнопка Reset его больше не вызывает.
 export function resetSession() {
     resetOutputOnly();                      // шаги 1-4: остановить тик, сбросить SBSconfig, оповестить визуализацию, кнопку
     resetState();                           // 5. стереть данные вычислений: workerResult, workerMaxNum, hasResult, activeInputValue и т.д.

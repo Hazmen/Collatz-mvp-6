@@ -28,7 +28,7 @@ outputMode_EventTarget.addEventListener('outputMode_change', (event) => {
     else if (mode === 'auto') 
         toogle_Controllers_Visibility(true, true, false); 
     else if (mode === 'manual') 
-        toogle_Controllers_Visibility(false, true, true);
+        toogle_Controllers_Visibility(true, true, false);
 
     // ------ ACTIVE OUTPUT TRANSITIONS (single source of truth) ------ \\
     // Spec:

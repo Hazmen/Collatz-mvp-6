@@ -375,6 +375,9 @@
   .hidden {
     display: none;
   }
+  .inline {
+    display: inline;
+  }
   .sequence-list-container {
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -775,6 +778,10 @@
     outline-style: var(--tw-outline-style);
     outline-width: 1px;
   }
+  .blur {
+    --tw-blur: blur(8px);
+    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
+  }
   .invert {
     --tw-invert: invert(100%);
     filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
@@ -980,6 +987,18 @@
 .txtList-obj.expanded .math-exp-anim {
   opacity: 1;
   transform: translateX(0);
+}
+.is-pressed {
+  --tw-scale-x: 95%;
+  --tw-scale-y: 95%;
+  --tw-scale-z: 95%;
+  scale: var(--tw-scale-x) var(--tw-scale-y);
+}
+.is-pressed-sm {
+  --tw-scale-x: 90%;
+  --tw-scale-y: 90%;
+  --tw-scale-z: 90%;
+  scale: var(--tw-scale-x) var(--tw-scale-y);
 }
 @property --tw-rotate-x {
   syntax: "*";

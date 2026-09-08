@@ -12,7 +12,7 @@ export function sendCollatz_SecondaryData(item, max, length, target) {
             status: 'done'
         }
     });
-
+    
     target.dispatchEvent(CollatzData_DoneEvent);
 };
 

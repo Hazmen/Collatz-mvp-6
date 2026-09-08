@@ -4,6 +4,8 @@ import { sendOutputMode_ChangeEvent } from '../ESmodules/state/events.js';
 // ------ CONSTANTS & SHARED EVENT BUS ------ \\
 const VALID_MODES = ['instant', 'auto', 'manual']; /* allowed output modes */
 const PADDING = 5;                                 /* inner padding for the slider math */
+const MANUAL_DIVIDER_GAP = 2;                      /* extra left gap at Auto/Manual boundary */
+const MANUAL_END_INSET = 2;                        /* extra right gap so Manual slider doesn't hug the edge */
 const SMOOTH_EASING = 'cubicBezier(0.16, 1, 0.3, 1)'; /* anime.js easing for slider motion */
 
 export const outputMode_EventTarget = new EventTarget(); /* global bus for mode changes */
@@ -215,6 +217,40 @@ class OutputModeControl extends HTMLElement {
                 background: rgba(0,0,0,0.15);
             }
 
+            /* ГАРАНТИЯ: скрытие через visibility (anime не трогает это свойство).
+               Если anime прервали (быстрые клики / ResizeObserver), opacity может застрять на 0.5,
+               но visibility всё равно спрячет элемент. Задержка = длительность fade, чтобы не ломать анимацию. */
+            .sbs-single {
+                visibility: visible;
+                transition: visibility 0s linear 0s;
+            }
+            .sbs-split {
+                visibility: visible;
+                transition: visibility 0s linear 0s;
+            }
+            :host([data-expanded="true"]) .sbs-single {
+                visibility: hidden;
+                transition-delay: 220ms; /* совпадает с anime scale 0.85 / opacity 0 220ms */
+                pointer-events: none !important;
+            }
+            :host([data-expanded="true"]) .sbs-split {
+                visibility: visible;
+                transition-delay: 0s;
+            }
+            :host([data-expanded="false"]) .sbs-split {
+                visibility: hidden;
+                transition-delay: 180ms; /* совпадает с fade out split 180ms */
+                pointer-events: none !important;
+            }
+            :host([data-expanded="false"]) .sbs-single {
+                visibility: visible;
+                transition-delay: 0s;
+            }
+            :host([data-expanded="false"]) .labels .sbs-split,
+            :host([data-expanded="false"]) .labels-invert .sbs-split {
+                pointer-events: none !important;
+            }
+
             @media (max-width: 480px) {
                 .segmented-control {
                     height: 52px;
@@ -278,6 +314,11 @@ class OutputModeControl extends HTMLElement {
         `;
     }
 
+    // ------ SYNC HOST ATTRIBUTE FOR CSS-GUARANTEE ------ \\
+    syncExpandedAttr() {
+        this.setAttribute('data-expanded', this._expanded ? 'true' : 'false');
+    }
+
     // ------ LIFECYCLE: ATTACH ------ \\
     connectedCallback() {
 
@@ -321,6 +362,7 @@ class OutputModeControl extends HTMLElement {
         this.resizeObserver.observe(this.control);
 
         // ------ INITIAL PAINT ------ \\
+        this.syncExpandedAttr();
         if (this._expanded) {
             this.expandSBS(this._mode, false);      /* show Auto/Manual split immediately */
         } else {
@@ -405,7 +447,11 @@ class OutputModeControl extends HTMLElement {
         if (target === 'auto') {
             return { left: PADDING + halfWidth, width: quarterWidth }; /* first quarter of SBS half */
         }
-        return { left: PADDING + halfWidth + quarterWidth, width: quarterWidth }; /* second quarter */
+        /* Manual: shrink from both sides so text stays centered (+2 at divider, +4 at right edge) */
+        return {
+            left: PADDING + halfWidth + quarterWidth + MANUAL_DIVIDER_GAP,
+            width: quarterWidth - MANUAL_DIVIDER_GAP - MANUAL_END_INSET
+        }; /* second quarter, inset from right edge */
     }
 
     // ------ MOVE SLIDER + INVERT MASK TOGETHER ------ \\
@@ -448,6 +494,7 @@ class OutputModeControl extends HTMLElement {
 
     // ------ APPLY VISUAL STATE FOR CURRENT MODE ------ \\
     applyState(animate) {
+        this.syncExpandedAttr();
         const pos = this.getSliderPos(this._mode);
 
         if (this._expanded) {
@@ -482,6 +529,7 @@ class OutputModeControl extends HTMLElement {
     expandSBS(target, animate) {
         this._expanded = true;
         this._mode = target;                        /* new child mode */
+        this.syncExpandedAttr();
 
         anime.remove(this.allSbsSingle);
         anime.remove(this.allSbsSplit);
@@ -529,6 +577,7 @@ class OutputModeControl extends HTMLElement {
     collapseSBS(animate) {
         this._expanded = false;
         this._mode = 'instant';
+        this.syncExpandedAttr();
 
         anime.remove(this.allSbsSingle);
         anime.remove(this.allSbsSplit);
@@ -576,6 +625,7 @@ class OutputModeControl extends HTMLElement {
     selectSbsChild(target) {
         if (this._mode === target) return;          /* no-op if same child */
         this._mode = target;
+        this.syncExpandedAttr();
         this.moveSliderTo(this.getSliderPos(target), true); /* slide quarter-width */
         this.syncRadio();
         this.commit();
