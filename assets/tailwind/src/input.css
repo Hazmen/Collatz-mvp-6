@@ -205,6 +205,109 @@
   scale: var(--tw-scale-x) var(--tw-scale-y);
 }
 
+/* ------ Reset hard-mode visuals (Shift / long-press) ------ */
+.proc-reset {
+  /* keep overflow-hidden from html, ensure fill stays inside rounded-2xl */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.proc-reset.reset-shift-active {
+  color: rgb(251 146 60); /* amber-500 */
+  border-color: rgba(251, 146, 60, 0.35);
+  background-color: rgba(251, 146, 60, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(251, 146, 60, 0.12);
+}
+
+.proc-reset.reset-shift-active .proc-reset-icon {
+  color: rgb(251 146 60);
+}
+
+/* bottom fill that grows during long-press — neat, 2px high, no layout shift */
+.proc-reset-fill {
+  width: 0;
+  opacity: 0;
+  transition: width 0s, opacity 150ms ease;
+}
+
+.proc-reset.hold-active .proc-reset-fill {
+  opacity: 1;
+  width: 100%;
+  transition: width 600ms linear, opacity 150ms ease;
+}
+
+/* tiny hint under the 3-col grid — always in DOM, barely visible, blooms on Shift */
+.reset-hint {
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: rgba(148, 163, 184, 0.55); /* slate-400/55 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4em;
+  height: 10px;
+  margin-top: 2px;
+  opacity: 0.55;
+  transform: translateY(0);
+  transition: color 180ms ease, opacity 180ms ease, transform 180ms ease;
+  pointer-events: none;
+  user-select: none;
+}
+
+.reset-hint .reset-hint-sep {
+  opacity: 0.5;
+}
+
+.reset-hint.reset-hint-shift {
+  color: rgba(251, 146, 60, 0.92);
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reset-hint.reset-hint-holding {
+  color: rgba(251, 146, 60, 0.92);
+  opacity: 1;
+}
+
+/* toast — hard-reset confirmation, minimal pill */
+.hard-reset-toast {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgb(241 245 249); /* slate-100 */
+  background: rgba(15, 23, 42, 0.92); /* slate-900 */
+  border: 1px solid rgba(51, 65, 85, 0.9);
+  border-radius: 9999px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.25);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease, transform 200ms ease;
+  z-index: 50;
+}
+
+.hard-reset-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.hard-reset-toast-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: rgb(251 146 60);
+  box-shadow: 0 0 8px rgba(251,146,60,0.6);
+  flex-shrink: 0;
+}
+
 
 
 

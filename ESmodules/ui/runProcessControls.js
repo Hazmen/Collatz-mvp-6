@@ -146,6 +146,17 @@ export function RunSequenceCalc() {
         if (state.isComputing) return;                          /* still don't abort mid-compute */
         setRunButtonMode(false);
         resetSession();                                         /* clear output + workerResult/errorCause */
+        showHardToast();
+    }
+
+    // ------ HARD-RESET TOAST ------ \\
+    let toastTimer = null;
+    function showHardToast() {
+        const toast = document.getElementById('hard-reset-toast');
+        if (!toast) return;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 1600);
     }
 
     // ------ MANUAL: ADD ONE BATCH (doubles as Run in manual) ------ \\
@@ -206,9 +217,18 @@ export function RunSequenceCalc() {
     });
     bindPress(runProcess_Elements.skipButton, 'KeyF', skipProcess, () => state.outputMode !== 'instant', false);
 
-    // ------ RESET BUTTON + R / Shift+R ------ \\
-    // Click: soft reset; Shift+click: hard reset (full session)
+    // ------ RESET BUTTON + R / Shift+R / long-press ------ \\
+    // State for Shift preview + long-press — declared before listeners (no TDZ)
+    const resetHint = document.getElementById('reset-hint');
+    const resetBtn = runProcess_Elements.resetButton;
+    const baseTitle = resetBtn.getAttribute('title') || 'Reset (R)';
+    const shiftTitle = 'Hard reset (Shift+R / long-press) — clears cache';
+    let longPressTimer = null;
+    let longPressTriggered = false;
+    const HOLD_MS = 600;
+
     runProcess_Elements.resetButton.addEventListener('click', (e) => {
+        if (longPressTriggered) { longPressTriggered = false; return; } // consumed by long-press
         if (e.shiftKey) hardResetProcess();
         else resetProcess();
     });
@@ -227,6 +247,70 @@ export function RunSequenceCalc() {
         runProcess_Elements.resetButton.classList.add('is-pressed');
         setTimeout(() => runProcess_Elements.resetButton.classList.remove('is-pressed'), 120);
         hardResetProcess();
+    });
+
+    // ------ SHIFT VISUAL HINT + LONG-PRESS (hold 600ms → hard reset) ------ \\
+    // 1) Shift highlight: amber border/text + hint bloom, no layout shift.
+    // 2) Long-press: mobile-friendly hard reset with neat 2px fill bar + hint.
+    function setShiftVisual(on) {
+        resetBtn.classList.toggle('reset-shift-active', on);
+        if (resetHint) resetHint.classList.toggle('reset-hint-shift', on);
+        resetBtn.setAttribute('title', on ? shiftTitle : baseTitle);
+    }
+
+    // Shift key alone toggles preview (doesn't fire hard reset until R/Click)
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Shift' && !e.repeat && !e.ctrlKey && !e.altKey && !e.metaKey) setShiftVisual(true);
+    });
+    document.addEventListener('keyup', (e) => {
+        if (e.key === 'Shift') setShiftVisual(false);
+    });
+    window.addEventListener('blur', () => setShiftVisual(false));
+    document.addEventListener('visibilitychange', () => setShiftVisual(false));
+    // Hover also faintly hints on desktop (optional polish, no clutter)
+    resetBtn.addEventListener('mouseenter', () => {
+        if (!resetBtn.classList.contains('reset-shift-active')) {
+            if (resetHint) resetHint.style.opacity = '0.85';
+        }
+    });
+    resetBtn.addEventListener('mouseleave', () => {
+        if (!resetBtn.classList.contains('reset-shift-active')) {
+            if (resetHint) resetHint.style.opacity = '';
+        }
+    });
+
+    // Long-press: pointerdown → 600ms fill → hard reset. Clean cancel on up/leave.
+    function cancelLongPress() {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+        resetBtn.classList.remove('hold-active');
+        if (resetHint) resetHint.classList.remove('reset-hint-holding');
+    }
+
+    resetBtn.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0) return;
+        if (resetBtn.classList.contains('locked')) return;
+        if (state.isComputing) return;
+        longPressTriggered = false;
+        // start neat fill animation (CSS width 0→100% over HOLD_MS)
+        resetBtn.classList.add('hold-active');
+        if (resetHint) resetHint.classList.add('reset-hint-holding');
+        clearTimeout(longPressTimer);
+        longPressTimer = setTimeout(() => {
+            longPressTriggered = true;
+            // keep fill full briefly, then hard reset + haptics + toast
+            hardResetProcess();
+            try { navigator.vibrate && navigator.vibrate(30); } catch {}
+            // leave fill visible ~250ms then fade out
+            setTimeout(cancelLongPress, 260);
+        }, HOLD_MS);
+    });
+    resetBtn.addEventListener('pointerup', cancelLongPress);
+    resetBtn.addEventListener('pointerleave', cancelLongPress);
+    resetBtn.addEventListener('pointercancel', cancelLongPress);
+    resetBtn.addEventListener('contextmenu', (e) => {
+        // prevent native menu from stealing long-press on mobile
+        if (longPressTimer) e.preventDefault();
     });
 
     // ------ MANUAL: NEXT BATCH (+) + Z ------ \\

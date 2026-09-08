@@ -61,11 +61,12 @@
             </div>
         
             <div class="grid grid-cols-3 gap-2">
-                <button title="Reset (R)" class="proc-reset h-12 flex items-center justify-center text-slate-400 hover:text-rose-400 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 active:scale-95 rounded-2xl transition-all duration-150 shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <button title="Reset (R) — Soft: clear output only · Shift+R / long-press — Hard: clear cache" aria-label="Reset — R soft, Shift+R hard" class="proc-reset relative overflow-hidden h-12 flex items-center justify-center text-slate-400 hover:text-rose-400 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 active:scale-95 rounded-2xl transition-all duration-150 shadow-sm select-none touch-manipulation">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="proc-reset-icon relative z-[1] transition-colors duration-150">
                         <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
                         <path d="M3 3v5h5"/>
                     </svg>
+                    <span class="proc-reset-fill absolute left-0 bottom-0 h-[2px] w-0 bg-amber-500/90 z-[2] pointer-events-none"></span>
                 </button>
                 
                 <button title="Run (Space)" id="runButton" class="proc-run h-12 flex items-center justify-center text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 active:scale-95 rounded-2xl transition-all duration-150 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 lockable">
@@ -97,6 +98,11 @@
                     </svg>
                 </button>
 
+            </div>
+            <div id="reset-hint" class="reset-hint text-center select-none" aria-hidden="true">
+                <span class="reset-hint-soft">R — soft reset</span>
+                <span class="reset-hint-sep">·</span>
+                <span class="reset-hint-hard">Shift+R / long-press — hard reset</span>
             </div>
         </div>
 
@@ -151,6 +157,11 @@
         </div>
     </main>
     
+    <div id="hard-reset-toast" class="hard-reset-toast" role="status" aria-live="polite" aria-atomic="true">
+        <span class="hard-reset-toast-dot" aria-hidden="true"></span>
+        <span>Hard reset — cache cleared</span>
+    </div>
+
     <script src="./ESmodules/main.js" type="module"></script>
     
     <!-- <script src="./ESmodules/ui/inputControls.js" type="module"></script> -->
