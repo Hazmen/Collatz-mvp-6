@@ -11,7 +11,11 @@ class SpeedController extends HTMLElement {
         <style>
             :host {
                 display: block;
+                width: 100%;
+                max-width: 26.625rem;
                 margin-top: 24px;
+                margin-inline: auto;
+                box-sizing: border-box;
                 transition: opacity 250ms ease, transform 250ms ease;
                 transform-origin: top center;
             }
@@ -22,7 +26,8 @@ class SpeedController extends HTMLElement {
             }
             .speed-controller {
                 width: 100%;
-                max-width: 24rem;
+                max-width: 100%;
+                box-sizing: border-box;
                 padding: 1.25rem;
                 background: rgba(15, 23, 42, 0.6);
                 backdrop-filter: blur(12px);
@@ -192,6 +197,64 @@ class SpeedController extends HTMLElement {
             .btn-icon-sm:active {
                 transform: scale(0.9);
             }
+
+            /* ------ MOBILE ADAPTIVE: PC (>480px) untouched ------ */
+            @media (max-width: 480px) {
+                :host {
+                    width: 100%;
+                    max-width: calc(100vw - 1.5rem);
+                    margin-inline: auto;
+                }
+                .speed-controller {
+                    max-width: 100%;
+                    box-sizing: border-box;
+                    padding: 1rem 0.875rem;
+                    gap: 0.75rem;
+                }
+                .controller-section {
+                    gap: 0.75rem;
+                    min-width: 0;
+                }
+                /* header rows: allow shrink/wrap, override inline styles */
+                #speed-section > div:first-child {
+                    gap: 0.5rem !important;
+                    min-width: 0 !important;
+                }
+                .speed-display {
+                    min-width: 4rem !important;
+                }
+                #batch-section > div:first-child {
+                    gap: 0.5rem !important;
+                    flex-wrap: wrap !important;
+                    min-width: 0 !important;
+                }
+                #batch-section > div:first-child > div {
+                    gap: 0.25rem !important;
+                    flex-shrink: 0 !important;
+                }
+                .batch_label {
+                    flex-shrink: 1 !important;
+                    min-width: 0 !important;
+                    font-size: 0.7rem !important;
+                }
+                .speed-preset {
+                    padding: 0.3rem 0.5rem;
+                    font-size: 0.7rem;
+                }
+                .batch-preset {
+                    padding: 0.25rem 0.45rem;
+                    font-size: 10px;
+                }
+                .batch-input {
+                    width: 4rem;
+                    box-sizing: border-box;
+                }
+                .btn-icon-sm {
+                    width: 1.875rem;
+                    height: 1.875rem;
+                    flex-shrink: 0;
+                }
+            }
         </style>
         
         <div class="speed-controller">
@@ -202,7 +265,7 @@ class SpeedController extends HTMLElement {
                         Output speed
                     </span>
                     <span class="speed-display" style="font-size:0.875rem; font-family:monospace; font-weight:bold; color:#a5b4fc; font-variant-numeric:tabular-nums; min-width:5rem; text-align:right;">
-                        Off
+                        0ms
                     </span>
                 </div>
 
@@ -210,7 +273,7 @@ class SpeedController extends HTMLElement {
                 <div style="display:flex; flex-direction:column; gap:0.25rem; padding:0 0.125rem;">
                     <input type="range" id="speed-slider" min="0" max="5000" value="500" step="10" class="speed-slider">
                     <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; font-family:monospace; padding:0 0.125rem; margin-top:0.125rem;">
-                        <span>Off</span>
+                        <span>0ms</span>
                         <span>1с</span>
                         <span>2с</span>
                         <span>3с</span>
@@ -221,7 +284,7 @@ class SpeedController extends HTMLElement {
 
                 <!-- Preset buttons -->
                 <div style="display:flex; flex-wrap:wrap; gap:0.375rem; justify-content:center;">
-                    <button data-ms="0" class="speed-preset active">Off</button>
+                    <button data-ms="0" class="speed-preset active">0ms</button>
                     <button data-ms="50" class="speed-preset">50ms</button>
                     <button data-ms="100" class="speed-preset">100ms</button>
                     <button data-ms="250" class="speed-preset">250ms</button>
@@ -291,7 +354,7 @@ class SpeedController extends HTMLElement {
         const clampBatch = (val) => Math.max(1, Math.min(10000, Math.round(val))); /* keep batch in [1, 10000] */
 
         const formatSpeed = (ms) => {           /* human-readable label for the delay */
-            if (ms === 0) return 'Off';         /* 0 means SBS is effectively instant */
+            if (ms === 0) return '0ms';         /* 0 = fastest SBS tick (setTimeout 0), NOT the same as Instant mode */
             if (ms < 1000) return ms + 'ms';
             return (ms / 1000).toFixed(1).replace(/\.0$/, '') + 's';
         };

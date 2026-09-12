@@ -30,6 +30,9 @@ class OutputModeControl extends HTMLElement {
                 --text-invert: #ffffff;
                 --accent-glow: rgba(99, 102, 241, 0.2);
                 display: block;
+                width: 100%;
+                max-width: 100vw;
+                box-sizing: border-box;
             }
 
             * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -39,6 +42,10 @@ class OutputModeControl extends HTMLElement {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
+                width: 100%;
+                max-width: 100vw;
+                padding-inline: 1rem;
+                box-sizing: border-box;
             }
 
             .segCont_label {
@@ -76,10 +83,12 @@ class OutputModeControl extends HTMLElement {
                 border-radius: 9999px;
                 height: 58px;
                 width: 340px;
+                max-width: 100%;
                 padding: ${PADDING}px;
                 user-select: none;
                 box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 30px var(--accent-glow);
-                margin: 25px;
+                margin: 25px auto;
+                box-sizing: border-box;
             }
 
             .slider {
@@ -252,9 +261,13 @@ class OutputModeControl extends HTMLElement {
             }
 
             @media (max-width: 480px) {
+                .segmented-control_container {
+                    padding-inline: 0.75rem;
+                }
                 .segmented-control {
                     height: 52px;
-                    width: 290px;
+                    width: min(290px, calc(100vw - 2.5rem));
+                    margin: 12px auto;
                 }
             }
         </style>
