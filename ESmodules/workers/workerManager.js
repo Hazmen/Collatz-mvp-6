@@ -23,10 +23,8 @@ worker.onmessage = (e) => {
         setToogleSwitch('collatz_received', true);
         
         // new badass way to write all the data :DDDD
-        setTimeout(() => {        
-            state.isComputing = false;
-            ev.sendCollatz_SecondaryData( state, e.data.max, e.data.steps, stateTarget );
-        }, 1000);
+        state.isComputing = false;
+        ev.sendCollatz_SecondaryData( state, e.data.max, e.data.steps, stateTarget );
     }
 
     // getting to know that something went wrong (of course it will) 

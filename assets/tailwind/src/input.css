@@ -187,8 +187,9 @@
 }
 
 @utility locked {
-  opacity: .5;
+  opacity: .6;
   pointer-events: none;
+  cursor: not-allowed;
 }
 
 .is-pressed {
@@ -234,6 +235,8 @@
   width: 100%;
   transition: width 600ms linear, opacity 150ms ease;
 }
+
+/* TOAST */
 
 /* tiny hint under the 3-col grid — always in DOM, barely visible, blooms on Shift */
 .reset-hint {

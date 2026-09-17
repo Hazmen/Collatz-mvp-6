@@ -55,3 +55,4 @@ outputMode_EventTarget.addEventListener('outputMode_change', (event) => {
 
     prevMode = mode;
 });
+

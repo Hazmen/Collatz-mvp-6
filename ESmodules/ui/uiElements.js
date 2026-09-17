@@ -1,7 +1,12 @@
 import { $, $$, $$$ } from '../utils/dom.js';
 
+// $ -> document.querySelector();
+// $$ -> document.querySelectorAll();
+// $$$ -> document.getElementById();
+
 // THERE SHOULD BE ONLY LINKS TO REAL DOM ELEMENTS!!!
 
+// Main input field
 export let mainInputField = $$$('number-input'); // INPUT field
 
 // Run process controls
@@ -11,8 +16,10 @@ export const skipButton = $('.proc-skip');
 export const nextButton = $('.proc-showNext');
 export const backButton = $('.proc-delLast');
 
-export const manualBtns_container = $('.sbs-manual_controllers')
+export const manualBtns_container = $('.sbs-manual_controllers');
 
+// Reset (Normal / Hard) DOM elements
+export const resetHint = $$$('reset-hint');
 
 // input controls
 export const saveInput = $('.save-inp'); 

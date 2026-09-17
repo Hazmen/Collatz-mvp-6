@@ -18,8 +18,6 @@ main {
 output-mode-control,
 speed-controller {
   display: block;
-  width: 100%;
-  max-width: 100vw;
-  box-sizing: border-box;
+  max-width: 100%;
   min-width: 0;
 }

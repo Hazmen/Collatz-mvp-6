@@ -11,11 +11,9 @@ class SpeedController extends HTMLElement {
         <style>
             :host {
                 display: block;
-                width: 100%;
                 max-width: 26.625rem;
                 margin-top: 24px;
                 margin-inline: auto;
-                box-sizing: border-box;
                 transition: opacity 250ms ease, transform 250ms ease;
                 transform-origin: top center;
             }
@@ -26,8 +24,7 @@ class SpeedController extends HTMLElement {
             }
             .speed-controller {
                 width: 100%;
-                max-width: 100%;
-                box-sizing: border-box;
+                max-width: 24rem;
                 padding: 1.25rem;
                 background: rgba(15, 23, 42, 0.6);
                 backdrop-filter: blur(12px);
