@@ -28,6 +28,7 @@ body {
   top: 24px;
   left: 50%;
   transform: translateX(-50%) translateY(-8px);
+  transform-origin: center center;
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -61,20 +62,15 @@ body {
     0 2px 8px rgba(0, 0, 0, 0.25),
     0 0 20px -3px color-mix(in srgb, var(--toast-color) 12%, transparent);
 
-  scale: 1;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 200ms ease, transform 200ms ease, scale 450ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  will-change: transform, opacity, scale;
+  transition: opacity 200ms ease, transform 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform, opacity;
 
   &::before {
     content: "";
     position: absolute;
     inset: -12px -20px;
-  }
-  
-  &:hover {
-    scale: 1.08;
   }
 }
 
@@ -82,6 +78,41 @@ body {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
   pointer-events: auto;
+}
+
+.toast.show:hover {
+  /* островок: строго от центра, X > Y */
+  transform: translateX(-50%) translateY(0) scale(1.1, 1.05);
+}
+
+/* контейнер для отдельных тостов — каждый вызов создаёт новый объект */
+#toast-stack {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 50;
+  pointer-events: none;
+}
+
+#toast-stack .toast {
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: translateY(-8px);
+  pointer-events: auto;
+}
+
+#toast-stack .toast.show {
+  transform: translateY(0);
+}
+
+#toast-stack .toast.show:hover {
+  transform: translateY(0) scale(1.1, 1.05);
 }
 
 .activate{
@@ -305,13 +336,17 @@ body {
       </div>
     </div>
 
-    <div role="status" class="toast" id="toast">
-        <span class="toast-dot" aria-hidden="true"></span>
-        <div class="toast-text">
-            <span class="toast-label">ERROR!</span>
-            <span class="toast-desc">Too many braincells lost</span>
+    <div id="toast-stack" aria-live="polite" aria-atomic="false"></div>
+
+    <template id="toast-template">
+        <div class="toast" role="status">
+            <span class="toast-dot" aria-hidden="true"></span>
+            <div class="toast-text">
+                <span class="toast-label"></span>
+                <span class="toast-desc"></span>
+            </div>
         </div>
-    </div>
+    </template>
 
     <button class="activate" id="activate">SPAWN TOAST</button>
 
@@ -320,10 +355,10 @@ const inputMainLabel = document.querySelector('.dev-mainLabel');
 const inputDesc = document.querySelector('input[name="dev-desc"]');
 const inputHex = document.getElementById('dev-hex');
 const swatches = document.querySelectorAll('.dev-swatch');
-
-const toastLabel = document.querySelector('.toast-label');
-const toastDesc = document.querySelector('.toast-desc');
 const root = document.documentElement;
+const stack = document.getElementById('toast-stack');
+const template = document.getElementById('toast-template');
+const activateBtn = document.getElementById('activate');
 
 // Инициализация темного Pickr
 const pickr = Pickr.create({
@@ -345,32 +380,20 @@ const pickr = Pickr.create({
 function setColor(hex, fromPickr = false) {
     root.style.setProperty('--toast-color', hex);
     inputHex.value = hex;
-
     swatches.forEach(s => {
         s.classList.toggle('active', s.dataset.color.toLowerCase() === hex.toLowerCase());
     });
-
     if (!fromPickr && pickr) {
         pickr.setColor(hex);
     }
 }
 
-// Слушаем события пикера при перетаскивании ползунков
 pickr.on('change', (color) => {
     const hex = color.toHEXA().toString().slice(0, 7);
     setColor(hex, true);
 });
 
-// Ввод текста
-inputMainLabel.addEventListener('input', () => {
-    toastLabel.textContent = inputMainLabel.value;
-});
-
-inputDesc.addEventListener('input', () => {
-    toastDesc.textContent = inputDesc.value;
-});
-
-// Ручной ввод HEX
+// Ручной ввод HEX — обновляет глобальный --toast-color для превью следующего тоста
 inputHex.addEventListener('input', () => {
     let val = inputHex.value.trim();
     if (!val.startsWith('#')) val = '#' + val;
@@ -379,24 +402,50 @@ inputHex.addEventListener('input', () => {
     }
 });
 
-// Клик по палитре
 swatches.forEach(btn => {
     btn.addEventListener('click', () => {
         setColor(btn.dataset.color);
     });
 });
 
-// Activate -> show toast
-const toast = document.getElementById('toast');
-const activateBtn = document.getElementById('activate');
-let hideTimer;
+// Универсальная функция — СОЗДАЁТ отдельный объект по шаблону <template>
+function showToast(toastLabelValue, toastDescriptionValue, toastColorValue) {
+    const label = toastLabelValue ?? '';
+    const desc = toastDescriptionValue ?? '';
+    let color = (toastColorValue ?? '').trim();
+    if (color && !color.startsWith('#')) color = '#' + color;
+    const isValidHex = /^#[0-9A-F]{6}$/i.test(color);
+    const finalColor = isValidHex ? color : getComputedStyle(root).getPropertyValue('--toast-color').trim() || '#ef4444';
+
+    const clone = template.content.cloneNode(true);
+    const toastEl = clone.querySelector('.toast');
+    toastEl.querySelector('.toast-label').textContent = label;
+    toastEl.querySelector('.toast-desc').textContent = desc;
+    // цвет — только на конкретный экземпляр, не трогает :root
+    toastEl.style.setProperty('--toast-color', finalColor);
+
+    stack.appendChild(toastEl);
+    // рефлоу для анимации появления
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => toastEl.classList.add('show'));
+    });
+
+    // авто-удаление через 2600мс + плавное исчезновение
+    setTimeout(() => {
+        toastEl.classList.remove('show');
+        toastEl.addEventListener('transitionend', () => toastEl.remove(), { once: true });
+        setTimeout(() => toastEl.remove(), 600); // fallback
+    }, 2600);
+
+    return toastEl;
+}
+
+// Клик по кнопке активации — вызывает универсальную функцию с аргументами из панели (по порядку)
 activateBtn.addEventListener('click', () => {
-    toast.classList.remove('show');
-    void toast.offsetWidth; // рестарт анимации если уже показан
-    toast.classList.add('show');
-    clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+    showToast(inputMainLabel.value, inputDesc.value, inputHex.value);
 });
+
+window.showToast = showToast;
     </script>
 </body>
 </html>
