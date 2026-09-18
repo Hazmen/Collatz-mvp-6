@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toast Lab · test3</title>
+
+    <!-- =========================================
+         TOAST SYSTEM (пилюля + контейнер top-right)
+         ========================================= -->
+    <style>
+:root {
+    --toast-color: #00c4ff;
+}
+
+.toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  transform-origin: center center;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px 16px;
+  min-width: 85px;
+  max-width: 360px;
+  letter-spacing: 0.01em;
+  color: rgb(241 245 249);
+  border-radius: 9999px;
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 50;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  background-color: rgba(15, 23, 42, 0.45);
+
+  background-image:
+    radial-gradient(
+      circle 60px at 20px 50%,
+      color-mix(in srgb, var(--toast-color) 35%, transparent),
+      transparent 100%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 40%,
+      transparent 80%,
+      rgba(255, 255, 255, 0.03) 100%
+    );
+
+  border: none;
+
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    0 0 20px -3px color-mix(in srgb, var(--toast-color) 20%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--toast-color) 15%, rgba(255, 255, 255, 0.1)),
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.15),
+    inset 0 -1.5px 2px rgba(0, 0, 0, 0.2);
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease, transform 500ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 300ms ease;
+}
+
+/* Контейнер: absolute (для встраивания), правый верхний угол */
+#toast-container {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  z-index: 50;
+  pointer-events: none;
+  max-width: min(360px, calc(100vw - 32px));
+}
+
+/* Тосты внутри контейнера: обычная колонка, новые сверху (prepend) — мягкое появление */
+#toast-container .toast {
+  position: relative;
+  top: auto;
+  left: auto;
+  opacity: 0;
+  transform: translateX(22px) scale(0.98);
+  pointer-events: none;
+  will-change: transform, opacity;
+  transition: opacity 480ms cubic-bezier(0.25, 0.1, 0.25, 1),
+              transform 480ms cubic-bezier(0.25, 0.1, 0.25, 1),
+              box-shadow 300ms ease;
+}
+
+#toast-container .toast.show {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  pointer-events: auto;
+}
+
+#toast-container .toast.show:hover {
+  transform: translateX(0) translateY(-2px) scale(1.02);
+  box-shadow:
+    0 16px 36px rgba(0, 0, 0, 0.45),
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 0 30px -2px color-mix(in srgb, var(--toast-color) 25%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--toast-color) 20%, rgba(255, 255, 255, 0.15)),
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.25),
+    inset 0 -1.5px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Выход: fade + уезд вправо, затем схлопывание */
+#toast-container .toast.leaving {
+  opacity: 0;
+  transform: translateX(60%) scale(0.9);
+  pointer-events: none;
+  transition: opacity 300ms cubic-bezier(0.33, 0, 0.67, 0),
+              transform 300ms cubic-bezier(0.33, 0, 0.67, 0);
+}
+
+#toast-container .toast.collapsing {
+  box-sizing: border-box;
+  overflow: hidden;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  transition: height 250ms ease, padding 250ms ease, margin 250ms ease, opacity 200ms ease;
+}
+
+.toast-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--toast-color);
+
+    box-shadow:
+      0 0 1.5px 1.5px color-mix(in srgb, var(--toast-color) 80%, transparent),
+      0 0 4px 1px color-mix(in srgb, var(--toast-color) 60%, transparent),
+      0 1px 6px color-mix(in srgb, var(--toast-color) 30%, transparent);
+
+    animation: dot-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes dot-pulse {
+  0%, 100% { opacity: 0.65; }
+  50% { opacity: 1; }
+}
+
+.toast-text {
+    display: flex;
+    flex-direction: column;
+    padding-right: 4px;
+    gap: 2px;
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+}
+
+.toast-label {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.toast-desc {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 11px;
+    line-height: 1.2;
+    font-weight: 400;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.toast-close {
+    margin-left: 2px;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.toast-close:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    transform: scale(1.1);
+}
+
+/* Прогресс-бар авто-закрытия: тонкая полоска внутри пилюли */
+.toast-progress {
+    position: absolute;
+    left: 22px;
+    right: 22px;
+    bottom: 7px;
+    height: 2px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+}
+
+.toast-progress-fill {
+    display: block;
+    height: 100%;
+    width: 100%;
+    border-radius: 2px;
+    background: var(--toast-color);
+    box-shadow: 0 0 6px var(--toast-color);
+    transform: scaleX(1);
+    transform-origin: left center;
+    will-change: transform;
+}
+
+@media (max-width: 520px) {
+    #toast-container {
+        left: 16px;
+        align-items: stretch;
+    }
+    #toast-container .toast {
+        max-width: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #toast-container .toast,
+    #toast-container .toast.leaving,
+    #toast-container .toast.collapsing,
+    .toast-dot {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+    </style>
+
+    <!-- =========================================
+         DEV/PREVIEW STYLES (панель слева)
+         ========================================= -->
+    <style>
+body {
+  position: relative;
+  overflow: hidden;
+  background: #073151;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* DEV PANEL — левый верхний угол */
+.dev-tools {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 12px;
+  min-width: 180px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.3),
+    0 12px 24px -4px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.dev-tool-label {
+  margin: 2px 0 -2px 2px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  line-height: 1;
+}
+
+.dev-tools input[type="text"],
+.dev-tools input[type="number"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #e2e8f0;
+  background: rgba(2, 6, 23, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dev-tools input[type="text"]::placeholder {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.dev-tools input[type="text"]:focus,
+.dev-tools input[type="number"]:focus {
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.05);
+}
+
+.dev-color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dev-color-row input[type="color"] {
+  width: 32px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(2, 6, 23, 0.6);
+  cursor: pointer;
+}
+
+.dev-hex-input {
+  font-family: monospace;
+  text-transform: uppercase;
+}
+
+.dev-types,
+.dev-demos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.dev-type,
+.dev-demo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 8px;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #e2e8f0;
+  background: rgba(2, 6, 23, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+}
+
+.dev-type:hover,
+.dev-demo:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.03);
+}
+
+.dev-type.active {
+  border-color: var(--type-color);
+  box-shadow: 0 0 0 1px var(--type-color), 0 0 12px -2px var(--type-color);
+}
+
+.dev-type i,
+.dev-demo i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--type-color);
+  box-shadow: 0 0 6px var(--type-color);
+  flex-shrink: 0;
+}
+
+.dev-spawn {
+  padding: 8px 12px;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgb(241 245 249);
+  background: rgba(30, 41, 59, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 150ms ease, transform 150ms ease;
+}
+
+.dev-spawn:hover {
+  background: rgba(51, 65, 85, 0.95);
+  transform: scale(1.02);
+}
+
+.dev-spawn:active {
+  transform: scale(0.98);
+}
+
+.dev-hint {
+  margin: 2px 2px 0;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #64748b;
+}
+    </style>
+</head>
+<body>
+    <div class="dev-tools">
+      <p class="dev-tool-label">Toast label</p>
+      <input type="text" class="dev-mainLabel" placeholder="Main label" value="Saved">
+
+      <p class="dev-tool-label">Toast description</p>
+      <input type="text" name="dev-desc" placeholder="Description label" value="Your changes are live">
+
+      <p class="dev-tool-label">Type</p>
+      <div class="dev-types">
+        <button type="button" class="dev-type" style="--type-color: #00ff88" data-type="success"><i></i>Success</button>
+        <button type="button" class="dev-type" style="--type-color: #ff6b6b" data-type="error"><i></i>Error</button>
+        <button type="button" class="dev-type" style="--type-color: #ffc700" data-type="warning"><i></i>Warning</button>
+        <button type="button" class="dev-type active" style="--type-color: #00c4ff" data-type="info"><i></i>Info</button>
+      </div>
+
+      <p class="dev-tool-label">Color (custom)</p>
+      <div class="dev-color-row">
+        <input type="color" id="dev-color" value="#00c4ff">
+        <input type="text" id="dev-hex" class="dev-hex-input" placeholder="#00c4ff" maxlength="7" value="#00c4ff">
+      </div>
+
+      <p class="dev-tool-label">Duration (ms, 0 = sticky)</p>
+      <input type="number" id="dev-duration" value="5000" min="0" step="500">
+
+      <button type="button" class="dev-spawn" id="spawn">Spawn toast</button>
+
+      <p class="dev-tool-label">Demo</p>
+      <div class="dev-demos">
+        <button type="button" class="dev-demo" style="--type-color: #00ff88" data-demo="success"><i></i>Success</button>
+        <button type="button" class="dev-demo" style="--type-color: #ff6b6b" data-demo="error"><i></i>Error</button>
+        <button type="button" class="dev-demo" style="--type-color: #ffc700" data-demo="warning"><i></i>Warning</button>
+        <button type="button" class="dev-demo" style="--type-color: #00c4ff" data-demo="info"><i></i>Info</button>
+      </div>
+
+      <p class="dev-hint">Max 5 visible — oldest auto-dismissed.<br>Hover pauses the countdown.<br>0 ms = sticky (close via ×).</p>
+    </div>
+
+    <div id="toast-container" role="log" aria-live="polite" aria-label="Notifications"></div>
+
+    <template id="toast-template">
+        <div class="toast" role="status">
+            <span class="toast-dot" aria-hidden="true"></span>
+            <div class="toast-text">
+                <span class="toast-label"></span>
+                <span class="toast-desc"></span>
+            </div>
+            <button type="button" class="toast-close" aria-label="Dismiss notification">×</button>
+            <span class="toast-progress" aria-hidden="true"><span class="toast-progress-fill"></span></span>
+        </div>
+    </template>
+
+    <script>
+const TYPES = {
+    success: { color: '#00ff88' },
+    error:   { color: '#ff6b6b' },
+    warning: { color: '#ffc700' },
+    info:    { color: '#00c4ff' }
+};
+const MAX_VISIBLE = 5;
+const EXIT_MS = 300;
+const COLLAPSE_MS = 270;
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+const container = document.getElementById('toast-container');
+const template = document.getElementById('toast-template');
+const byId = new Map();
+let seq = 0;
+
+function show({ type = 'info', title = '', message = '', duration = 5000, color } = {}) {
+    const accent = color || (TYPES[type] || TYPES.info).color;
+    const id = 'toast-' + (++seq);
+
+    const toastEl = template.content.querySelector('.toast').cloneNode(true);
+    toastEl.dataset.toastId = id;
+    toastEl.dataset.type = TYPES[type] ? type : 'info';
+    toastEl.querySelector('.toast-label').textContent = title;
+
+    const descEl = toastEl.querySelector('.toast-desc');
+    descEl.textContent = message;
+    if (!message) descEl.style.display = 'none';
+
+    toastEl.style.setProperty('--toast-color', accent);
+
+    const fill = toastEl.querySelector('.toast-progress-fill');
+    const progress = toastEl.querySelector('.toast-progress');
+    const sticky = !Number.isFinite(duration) || duration <= 0;
+    if (sticky) progress.style.display = 'none';
+
+    toastEl._duration = duration;
+    toastEl._remaining = duration;
+    toastEl._timer = null;
+    toastEl._raf = null;
+
+    function tick() {
+        const remain = Math.max(0, toastEl._remaining - (performance.now() - toastEl._startedAt));
+        fill.style.transform = 'scaleX(' + (remain / toastEl._duration) + ')';
+        if (remain <= 0) { dismiss(id); return; }
+        toastEl._raf = requestAnimationFrame(tick);
+    }
+    function start() {
+        if (sticky || toastEl.dataset.leaving) return;
+        toastEl._startedAt = performance.now();
+        clearTimeout(toastEl._timer);
+        toastEl._timer = setTimeout(() => dismiss(id), toastEl._remaining);
+        cancelAnimationFrame(toastEl._raf);
+        toastEl._raf = requestAnimationFrame(tick);
+    }
+    function pause() {
+        if (sticky || toastEl.dataset.leaving) return;
+        clearTimeout(toastEl._timer);
+        cancelAnimationFrame(toastEl._raf);
+        toastEl._remaining = Math.max(0, toastEl._remaining - (performance.now() - toastEl._startedAt));
+        fill.style.transform = 'scaleX(' + (toastEl._remaining / toastEl._duration) + ')';
+    }
+
+    toastEl.querySelector('.toast-close').addEventListener('click', () => dismiss(id));
+    toastEl.addEventListener('mouseenter', pause);
+    toastEl.addEventListener('mouseleave', start);
+
+    // FLIP: анимируем сдвиг старых тостов вниз (вместо мгновенного прыжка)
+    const prev = reduceMotion.matches ? null : Array.from(container.children).map(el => ({ el, top: el.getBoundingClientRect().top }));
+
+    container.prepend(toastEl); // newest on top
+    byId.set(id, toastEl);
+
+    if (prev && prev.length) {
+        prev.forEach(({ el, top }) => {
+            const dy = top - el.getBoundingClientRect().top;
+            if (!dy) return;
+            el.style.transition = 'none';
+            el.style.transform = `translateY(${dy}px)`;
+            void el.offsetHeight;
+            el.style.transition = 'transform 320ms cubic-bezier(0.25, 0.1, 0.25, 1)';
+            el.style.transform = '';
+            // сбрасываем inline transition после окончания сдвига, чтобы вернуть 480ms для появления/ховера
+            el.addEventListener('transitionend', () => { el.style.transition = ''; }, { once: true });
+        });
+    }
+
+    // Enforce max: oldest (bottom) auto-dismissed
+    Array.from(container.children).slice(MAX_VISIBLE).forEach(el => dismiss(el.dataset.toastId));
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            toastEl.classList.add('show');
+            start();
+        });
+    });
+
+    return id;
+}
+
+function dismiss(id) {
+    const el = byId.get(id);
+    if (!el || el.dataset.leaving) return false;
+    el.dataset.leaving = '1';
+    clearTimeout(el._timer);
+    cancelAnimationFrame(el._raf);
+    byId.delete(id);
+
+    if (reduceMotion.matches) { el.remove(); return true; }
+
+    el.classList.remove('show');
+    el.classList.add('leaving');
+
+    setTimeout(() => {
+        el.style.height = el.offsetHeight + 'px';
+        void el.offsetHeight; // reflow
+        el.classList.add('collapsing');
+        el.style.height = '0px';
+        el.style.minHeight = '0';
+        el.style.paddingTop = '0px';
+        el.style.paddingBottom = '0px';
+        el.style.marginBottom = '-10px'; // counteracts container gap
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), COLLAPSE_MS);
+    }, EXIT_MS);
+
+    return true;
+}
+
+window.toast = { show, dismiss };
+// thin legacy wrapper, same signature as before
+window.showToast = (label, desc, color) => show({ title: label ?? '', message: desc ?? '', color });
+
+/* ---------- dev panel wiring (left) ---------- */
+const inputMainLabel = document.querySelector('.dev-mainLabel');
+const inputDesc = document.querySelector('input[name="dev-desc"]');
+const inputHex = document.getElementById('dev-hex');
+const inputColor = document.getElementById('dev-color');
+const inputDuration = document.getElementById('dev-duration');
+const typeBtns = document.querySelectorAll('.dev-type');
+const demoBtns = document.querySelectorAll('.dev-demo');
+const spawnBtn = document.getElementById('spawn');
+
+let activeType = 'info';
+let colorDirty = false;
+
+function setType(type) {
+    activeType = type;
+    colorDirty = false;
+    const hex = TYPES[type].color;
+    inputHex.value = hex;
+    inputColor.value = hex;
+    typeBtns.forEach(b => b.classList.toggle('active', b.dataset.type === type));
+}
+
+function setCustomColor(hex) {
+    colorDirty = true;
+    activeType = 'custom';
+    inputHex.value = hex;
+    if (/^#[0-9A-F]{6}$/i.test(hex)) inputColor.value = hex;
+    typeBtns.forEach(b => b.classList.remove('active'));
+}
+
+typeBtns.forEach(btn => btn.addEventListener('click', () => setType(btn.dataset.type)));
+
+inputColor.addEventListener('input', () => setCustomColor(inputColor.value));
+
+inputHex.addEventListener('input', () => {
+    let val = inputHex.value.trim();
+    if (!val.startsWith('#')) val = '#' + val;
+    if (/^#[0-9A-F]{6}$/i.test(val)) setCustomColor(val);
+});
+
+spawnBtn.addEventListener('click', () => {
+    show({
+        type: activeType,
+        title: inputMainLabel.value,
+        message: inputDesc.value,
+        duration: Number(inputDuration.value),
+        ...(colorDirty ? { color: inputHex.value } : {})
+    });
+});
+
+const DEMOS = {
+    success: { title: 'Saved', message: 'Your changes are live.' },
+    error:   { title: 'Upload failed', message: 'Could not reach the server. Try again.' },
+    warning: { title: 'Heads up', message: "You're at 90% of your limit." },
+    info:    { title: 'New version', message: 'v2.4 is ready to install.' }
+};
+
+demoBtns.forEach(btn => btn.addEventListener('click', () => {
+    const d = DEMOS[btn.dataset.demo];
+    show({ type: btn.dataset.demo, title: d.title, message: d.message, duration: 5000 });
+}));
+    </script>
+</body>
+</html>

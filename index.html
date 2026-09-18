@@ -162,10 +162,15 @@
         <span>Hard reset — cache cleared</span>
     </div>
 
-    <div role="status" class="toast" id="toast">
-        <span class="toast-dot" aria-hidden="true"></span>
-        <span class="toast-label"></span>
-    </div>
+    <template id="toast-template">
+        <div class="toast" role="status">
+            <span class="toast-dot" aria-hidden="true"></span>
+            <div class="toast-text">
+                <span class="toast-label"></span>
+                <span class="toast-desc"></span>
+            </div>
+        </div>
+    </template>
 
     <script src="./ESmodules/main.js" type="module"></script>
     

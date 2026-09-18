@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
 
     <!-- =========================================
-         TOAST STYLES (только тост и стек)
+         TOAST STYLES (только тост и контейнер)
          ========================================= -->
     <style>
 :root {
@@ -76,51 +76,6 @@
   }
 }
 
-/* =========================================
-   НОВЫЙ СТЕК: Сетка для наслаивания тостов
-   ========================================= */
-#toast-stack {
-  position: fixed;
-  top: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: grid;
-  grid-template-columns: auto;
-  justify-items: center;
-  gap: 12px;
-  z-index: 50;
-  pointer-events: none;
-}
-
-#toast-stack .toast {
-  position: relative;
-  top: auto;
-  left: auto;
-  pointer-events: auto;
-
-  /* Базовое состояние (невидим, чуть выше и меньше) */
-  opacity: 0;
-  transform: translateY(-20px) scale(0.9);
-
-  transition: opacity 200ms ease, transform 500ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 300ms ease;
-}
-
-#toast-stack .toast.show {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-#toast-stack .toast.show:hover {
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 
-    0 16px 36px rgba(0, 0, 0, 0.45),
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    0 0 30px -2px color-mix(in srgb, var(--toast-color) 25%, transparent),
-    inset 0 0 0 1px color-mix(in srgb, var(--toast-color) 20%, rgba(255, 255, 255, 0.15)),
-    inset 0 1.5px 2px rgba(255, 255, 255, 0.25),
-    inset 0 -1.5px 2px rgba(0, 0, 0, 0.2);
-}
-
 .toast-dot {
     width: 6px;
     height: 6px;
@@ -184,6 +139,37 @@
     overflow: hidden;
     overflow-wrap: anywhere;
     word-break: break-word;
+}
+
+.toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: flex-end;
+    gap: 10px;
+    z-index: 999;
+    pointer-events: none;
+}
+
+.toast-container .toast {
+    position: relative;
+    top: auto;
+    left: auto;
+    opacity: 0;
+    transform: translateX(20px) scale(0.9);
+    pointer-events: auto;
+    transition: opacity 200ms ease, transform 500ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 300ms ease;
+}
+
+.toast-container .toast.show {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+}
+
+.toast-container .toast.show:hover {
+    transform: translateX(0) translateY(-2px) scale(1.02);
 }
     </style>
 
@@ -375,8 +361,6 @@ body {
       </div>
     </div>
 
-    <div id="toast-stack" aria-live="polite" aria-atomic="false"></div>
-
     <template id="toast-template">
         <div class="toast" role="status">
             <span class="toast-dot" aria-hidden="true"></span>
@@ -387,6 +371,10 @@ body {
         </div>
     </template>
 
+    <div class="toast-container">
+
+    </div>
+
     <button class="activate" id="activate">SPAWN TOAST</button>
 
     <script>
@@ -395,7 +383,7 @@ const inputDesc = document.querySelector('input[name="dev-desc"]');
 const inputHex = document.getElementById('dev-hex');
 const swatches = document.querySelectorAll('.dev-swatch');
 const root = document.documentElement;
-const stack = document.getElementById('toast-stack');
+const container = document.querySelector('.toast-container');
 const template = document.getElementById('toast-template');
 const activateBtn = document.getElementById('activate');
 
@@ -453,7 +441,7 @@ function showToast(toastLabelValue, toastDescriptionValue, toastColorValue) {
     toastEl.querySelector('.toast-label').textContent = label;
     toastEl.style.setProperty('--toast-color', finalColor);
 
-    stack.appendChild(toastEl);
+    container.appendChild(toastEl);
     
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {

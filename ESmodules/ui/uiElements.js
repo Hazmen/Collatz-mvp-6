@@ -37,6 +37,21 @@ export let seqListObj_Font = $('.txtList-obj_font');
 export const txtList_num = $('.txtList-num');
 export const seqListContainer = $('.sequence-list-container');
 
+// toast — автономный доступ, лениво (DOM может ещё не быть готов при импорте)
+export const toastRoot = document.documentElement;
+export const getToastStack = () => {
+    let s = document.getElementById('toast-stack');
+    if (s) return s;
+    // автономность: если в index.html нет контейнера — создаём
+    s = document.createElement('div');
+    s.id = 'toast-stack';
+    s.setAttribute('aria-live', 'polite');
+    s.setAttribute('aria-atomic', 'false');
+    document.body.appendChild(s);
+    return s;
+};
+export const getToastTemplate = () => document.getElementById('toast-template');
+
 
 // !! BATCHES OF ELEMENTS !! // 
 
