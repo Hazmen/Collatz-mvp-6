@@ -4,7 +4,7 @@ import { mainInputField, txtList } from './ui/uiElements.js';
 import { SBSoutput } from './core/SBSoutputManager.js';
 import { preventLetters } from './ui/inputControls.js';
 import './ui/runProcessControls.js';
-import './ui/toast notification/reset-toast.js';
+import './ui/toast notification/toast-logic.js';
 import '../webComponents/speedController.js';
 import '../webComponents/outputModeController.js';
 import './visualisation/viewModes/sequenceView.js';

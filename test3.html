@@ -67,7 +67,7 @@
 
 /* Контейнер: absolute (для встраивания), правый верхний угол */
 #toast-container {
-  position: absolute;
+  position: fixed;
   top: 16px;
   right: 16px;
   display: flex;
@@ -232,11 +232,10 @@
 
 @media (max-width: 520px) {
     #toast-container {
-        left: 16px;
-        align-items: stretch;
+        right: 12px;
     }
     #toast-container .toast {
-        max-width: none;
+        max-width: 320px;
     }
 }
 
@@ -252,7 +251,7 @@
     </style>
 
     <!-- =========================================
-         DEV/PREVIEW STYLES (панель слева)
+         DEV/PREVIEW STYLES (горизонтальная панель снизу)
          ========================================= -->
     <style>
 body {
@@ -264,22 +263,39 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none;    /* Firefox */
+  -ms-user-select: none;     /* Internet Explorer / Edge */
+  user-select: none;         /* Новый стандарт */
 }
 
-/* DEV PANEL — левый верхний угол */
+/* DEV PANEL — горизонтальная панель снизу по центру.
+   Без transform-центрирования: left/right + margin auto,
+   иначе на мобильных при фокусе/зуме панель съезжает под край. */
 .dev-tools {
-  position: fixed;
-  top: 24px;
-  left: 24px;
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: auto;
+  bottom: 12px;
+  margin-left: auto;
+  margin-right: auto;
   z-index: 9999;
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 6px;
-  padding: 12px;
-  min-width: 180px;
-  max-height: calc(100vh - 48px);
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px 12px;
+  padding: 10px 14px;
+  box-sizing: border-box;
+  width: auto;
+  max-width: 916px;
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
   overflow-y: auto;
+  overflow-x: hidden;
   background: rgba(15, 23, 42, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -292,21 +308,83 @@ body {
   font-family: system-ui, -apple-system, sans-serif;
 }
 
+.dev-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.dev-group--message {
+  flex: 1 1 220px;
+  min-width: 180px;
+  max-width: 260px;
+}
+
+.dev-group--pick {
+  flex: 0 1 220px;
+  min-width: 190px;
+}
+
+.dev-group--style {
+  flex: 0 1 150px;
+  min-width: 132px;
+}
+
+.dev-group--actions {
+  flex: 0 1 220px;
+  min-width: 190px;
+}
+
+.dev-group--actions .dev-spawn {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .dev-tools {
+    gap: 8px;
+    padding: 10px 12px;
+    align-items: stretch;
+  }
+  .dev-hint {
+    display: none;
+  }
+  /* 16px — чтобы мобильный браузер не зумил инпут по фокусу
+     и fixed-панель не улетала вниз */
+  .dev-tools input[type="text"],
+  .dev-tools input[type="number"] {
+    font-size: 16px;
+  }
+  .dev-group--message,
+  .dev-group--pick {
+    flex-basis: 100%;
+    max-width: none;
+  }
+  .dev-group--style,
+  .dev-group--actions {
+    flex: 1 1 130px;
+    min-width: 0;
+  }
+}
+
 .dev-tool-label {
-  margin: 2px 0 -2px 2px;
+  margin: 0 0 0 2px;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #94a3b8;
-  line-height: 1;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .dev-tools input[type="text"],
 .dev-tools input[type="number"] {
   width: 100%;
+  min-width: 0;
   box-sizing: border-box;
-  padding: 6px 10px;
+  padding: 4px 8px;
   font-size: 12px;
   color: #e2e8f0;
   background: rgba(2, 6, 23, 0.6);
@@ -331,11 +409,12 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
 .dev-color-row input[type="color"] {
   width: 32px;
-  height: 26px;
+  height: 22px;
   padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
@@ -346,13 +425,15 @@ body {
 .dev-hex-input {
   font-family: monospace;
   text-transform: uppercase;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .dev-types,
 .dev-demos {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
 }
 
 .dev-type,
@@ -360,10 +441,11 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 6px 8px;
+  gap: 4px;
+  padding: 4px 6px;
   font-family: system-ui, -apple-system, sans-serif;
-  font-size: 11px;
+  font-size: 10px;
+  white-space: nowrap;
   font-weight: 600;
   letter-spacing: 0.03em;
   color: #e2e8f0;
@@ -396,7 +478,7 @@ body {
 }
 
 .dev-spawn {
-  padding: 8px 12px;
+  padding: 6px 10px;
   font-family: system-ui, -apple-system, sans-serif;
   font-size: 12px;
   font-weight: 700;
@@ -420,49 +502,64 @@ body {
 }
 
 .dev-hint {
-  margin: 2px 2px 0;
+  flex-basis: 100%;
+  margin: 0;
   font-size: 10px;
   line-height: 1.5;
   color: #64748b;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
     </style>
 </head>
 <body>
     <div class="dev-tools">
-      <p class="dev-tool-label">Toast label</p>
-      <input type="text" class="dev-mainLabel" placeholder="Main label" value="Saved">
+      <div class="dev-group dev-group--message">
+        <p class="dev-tool-label">Toast label</p>
+        <input type="text" class="dev-mainLabel" placeholder="Main label" value="Saved">
 
-      <p class="dev-tool-label">Toast description</p>
-      <input type="text" name="dev-desc" placeholder="Description label" value="Your changes are live">
-
-      <p class="dev-tool-label">Type</p>
-      <div class="dev-types">
-        <button type="button" class="dev-type" style="--type-color: #00ff88" data-type="success"><i></i>Success</button>
-        <button type="button" class="dev-type" style="--type-color: #ff6b6b" data-type="error"><i></i>Error</button>
-        <button type="button" class="dev-type" style="--type-color: #ffc700" data-type="warning"><i></i>Warning</button>
-        <button type="button" class="dev-type active" style="--type-color: #00c4ff" data-type="info"><i></i>Info</button>
+        <p class="dev-tool-label">Toast description</p>
+        <input type="text" name="dev-desc" placeholder="Description label" value="Your changes are live">
       </div>
 
-      <p class="dev-tool-label">Color (custom)</p>
-      <div class="dev-color-row">
-        <input type="color" id="dev-color" value="#00c4ff">
-        <input type="text" id="dev-hex" class="dev-hex-input" placeholder="#00c4ff" maxlength="7" value="#00c4ff">
+      <div class="dev-group dev-group--pick">
+        <p class="dev-tool-label">Type</p>
+        <div class="dev-types">
+          <button type="button" class="dev-type" style="--type-color: #00ff88" data-type="success"><i></i>Success</button>
+          <button type="button" class="dev-type" style="--type-color: #ff6b6b" data-type="error"><i></i>Error</button>
+          <button type="button" class="dev-type" style="--type-color: #ffc700" data-type="warning"><i></i>Warning</button>
+          <button type="button" class="dev-type active" style="--type-color: #00c4ff" data-type="info"><i></i>Info</button>
+        </div>
       </div>
 
-      <p class="dev-tool-label">Duration (ms, 0 = sticky)</p>
-      <input type="number" id="dev-duration" value="5000" min="0" step="500">
+      <div class="dev-group dev-group--style">
+        <p class="dev-tool-label">Color (custom)</p>
+        <div class="dev-color-row">
+          <input type="color" id="dev-color" value="#00c4ff">
+          <input type="text" id="dev-hex" class="dev-hex-input" placeholder="#00c4ff" maxlength="7" value="#00c4ff">
+        </div>
 
-      <button type="button" class="dev-spawn" id="spawn">Spawn toast</button>
-
-      <p class="dev-tool-label">Demo</p>
-      <div class="dev-demos">
-        <button type="button" class="dev-demo" style="--type-color: #00ff88" data-demo="success"><i></i>Success</button>
-        <button type="button" class="dev-demo" style="--type-color: #ff6b6b" data-demo="error"><i></i>Error</button>
-        <button type="button" class="dev-demo" style="--type-color: #ffc700" data-demo="warning"><i></i>Warning</button>
-        <button type="button" class="dev-demo" style="--type-color: #00c4ff" data-demo="info"><i></i>Info</button>
+        <p class="dev-tool-label">Duration (ms, 0 = sticky)</p>
+        <input type="number" id="dev-duration" value="5000" min="0" step="500">
       </div>
 
-      <p class="dev-hint">Max 5 visible — oldest auto-dismissed.<br>Hover pauses the countdown.<br>0 ms = sticky (close via ×).</p>
+      <div class="dev-group dev-group--actions">
+        <p class="dev-tool-label">Preview</p>
+        <button type="button" class="dev-spawn" id="spawn">Spawn toast</button>
+
+        <p class="dev-tool-label">Demo</p>
+        <div class="dev-demos">
+          <button type="button" class="dev-demo" style="--type-color: #00ff88" data-demo="success"><i></i>Success</button>
+          <button type="button" class="dev-demo" style="--type-color: #ff6b6b" data-demo="error"><i></i>Error</button>
+          <button type="button" class="dev-demo" style="--type-color: #ffc700" data-demo="warning"><i></i>Warning</button>
+          <button type="button" class="dev-demo" style="--type-color: #00c4ff" data-demo="info"><i></i>Info</button>
+        </div>
+      </div>
+
+      <p class="dev-hint">Max 5 visible — oldest auto-dismissed. Hover pauses the countdown. 0 ms = sticky (close via ×).</p>
     </div>
 
     <div id="toast-container" role="log" aria-live="polite" aria-label="Notifications"></div>

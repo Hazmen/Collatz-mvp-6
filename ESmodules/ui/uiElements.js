@@ -39,17 +39,25 @@ export const seqListContainer = $('.sequence-list-container');
 
 // toast — автономный доступ, лениво (DOM может ещё не быть готов при импорте)
 export const toastRoot = document.documentElement;
-export const getToastStack = () => {
-    let s = document.getElementById('toast-stack');
+function ensureContainer(id, ariaLabel) {
+    let s = document.getElementById(id);
     if (s) return s;
-    // автономность: если в index.html нет контейнера — создаём
     s = document.createElement('div');
-    s.id = 'toast-stack';
-    s.setAttribute('aria-live', 'polite');
-    s.setAttribute('aria-atomic', 'false');
+    s.id = id;
+    if (id === 'toast-container') {
+        s.setAttribute('role', 'log');
+        s.setAttribute('aria-live', 'polite');
+        s.setAttribute('aria-label', ariaLabel || 'Notifications');
+    } else {
+        s.setAttribute('aria-live', 'polite');
+        s.setAttribute('aria-atomic', 'false');
+    }
     document.body.appendChild(s);
     return s;
-};
+}
+export const getToastContainer = () => ensureContainer('toast-container', 'Notifications');
+// legacy: центр сверху, оставлен для совместимости
+export const getToastStack = () => ensureContainer('toast-stack');
 export const getToastTemplate = () => document.getElementById('toast-template');
 
 

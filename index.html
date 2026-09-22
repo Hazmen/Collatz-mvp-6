@@ -156,11 +156,8 @@
             </div>
         </div>
     </main>
-    
-    <div id="hard-reset-toast" class="hard-reset-toast" role="status" aria-live="polite" aria-atomic="true">
-        <span class="hard-reset-toast-dot" aria-hidden="true"></span>
-        <span>Hard reset — cache cleared</span>
-    </div>
+
+    <div id="toast-container" role="log" aria-live="polite" aria-label="Notifications"></div>
 
     <template id="toast-template">
         <div class="toast" role="status">
@@ -169,6 +166,8 @@
                 <span class="toast-label"></span>
                 <span class="toast-desc"></span>
             </div>
+            <button type="button" class="toast-close" aria-label="Dismiss notification">×</button>
+            <span class="toast-progress" aria-hidden="true"><span class="toast-progress-fill"></span></span>
         </div>
     </template>
 

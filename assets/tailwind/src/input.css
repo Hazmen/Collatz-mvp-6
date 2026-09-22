@@ -286,7 +286,7 @@
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 20px;
+  padding: 12px 20px 16px;
   min-width: 85px;
   max-width: 250px;
   letter-spacing: 0.01em;
@@ -358,6 +358,135 @@
 
 #toast-stack .toast.show:hover {
   transform: translateY(-2px) scale(1.03);
+}
+
+/* TOAST-CONTAINER из test3 — только необходимое для новых фич (колонка справа, FLIP, close, progress) */
+#toast-container {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  z-index: 50;
+  pointer-events: none;
+  max-width: min(360px, calc(100vw - 32px));
+}
+
+#toast-container .toast {
+  position: relative;
+  top: auto;
+  left: auto;
+  opacity: 0;
+  transform: translateX(22px) scale(0.98);
+  pointer-events: none;
+  will-change: transform, opacity;
+  transition: opacity 480ms cubic-bezier(0.25, 0.1, 0.25, 1),
+              transform 480ms cubic-bezier(0.25, 0.1, 0.25, 1),
+              box-shadow 300ms ease;
+}
+
+#toast-container .toast.show {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  pointer-events: auto;
+}
+
+#toast-container .toast.show:hover {
+  transform: translateX(0) translateY(-2px) scale(1.02);
+  box-shadow:
+    0 16px 36px rgba(0, 0, 0, 0.45),
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 0 30px -2px color-mix(in srgb, var(--toast-color) 25%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--toast-color) 20%, rgba(255, 255, 255, 0.15)),
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.25),
+    inset 0 -1.5px 2px rgba(0, 0, 0, 0.2);
+}
+
+#toast-container .toast.leaving {
+  opacity: 0;
+  transform: translateX(60%) scale(0.9);
+  pointer-events: none;
+  transition: opacity 300ms cubic-bezier(0.33, 0, 0.67, 0),
+              transform 300ms cubic-bezier(0.33, 0, 0.67, 0);
+}
+
+#toast-container .toast.collapsing {
+  box-sizing: border-box;
+  overflow: hidden;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  transition: height 250ms ease, padding 250ms ease, margin 250ms ease, opacity 200ms ease;
+}
+
+.toast-close {
+  margin-left: 2px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.toast-close:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  transform: scale(1.1);
+}
+
+.toast-progress {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: 7px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.toast-progress-fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: 2px;
+  background: var(--toast-color);
+  box-shadow: 0 0 6px var(--toast-color);
+  transform: scaleX(1);
+  transform-origin: left center;
+  will-change: transform;
+}
+
+@media (max-width: 520px) {
+  #toast-container {
+    left: 16px;
+    align-items: stretch;
+  }
+  #toast-container .toast {
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #toast-container .toast,
+  #toast-container .toast.leaving,
+  #toast-container .toast.collapsing,
+  .toast-dot {
+    transition: none !important;
+    animation: none !important;
+  }
 }
 
 .toast-dot {
