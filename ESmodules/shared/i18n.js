@@ -4,7 +4,7 @@
 // The simulation UI itself stays English and is untouched.
 
 const KEY = 'collatz-lang';
-const DEFAULT_LANG = 'ru';
+const DEFAULT_LANG = 'en';
 
 export const QUOTES = [
   '"Mathematics is not yet ready for such problems." — Paul Erdős',

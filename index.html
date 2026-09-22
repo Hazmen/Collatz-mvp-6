@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,7 +32,7 @@
     <div class="clz-bg" aria-hidden="true"></div>
 
     <!-- language toggle -->
-    <button id="landing-lang" class="landing-lang" type="button" aria-label="Toggle language">RU</button>
+    <button id="landing-lang" class="landing-lang" type="button" aria-label="Toggle language">EN</button>
 
     <main class="landing-main">
         <h1 class="landing-title reveal">
@@ -40,16 +40,16 @@
             <span class="title-collatz">TZIUM</span>
         </h1>
 
-        <p class="landing-tagline reveal" data-i18n="home.tagline">Любое число. Один закон. Всегда единица?</p>
+        <p class="landing-tagline reveal" data-i18n="home.tagline">Any number. One law. Always one?</p>
 
         <div class="landing-rules reveal">
-            <span class="landing-pill"><span class="pill-num">1.</span><span data-i18n="home.rule1">Чётное — делим на 2</span></span>
-            <span class="landing-pill"><span class="pill-num">2.</span><span data-i18n="home.rule2">Нечётное — умножаем на 3 и прибавляем 1</span></span>
-            <span class="landing-pill"><span class="pill-num">3.</span><span data-i18n="home.rule3">Повторяем, пока не дойдём до 1</span></span>
+            <span class="landing-pill"><span class="pill-num">1.</span><span data-i18n="home.rule1">Even — divide by 2</span></span>
+            <span class="landing-pill"><span class="pill-num">2.</span><span data-i18n="home.rule2">Odd — multiply by 3 and add 1</span></span>
+            <span class="landing-pill"><span class="pill-num">3.</span><span data-i18n="home.rule3">Repeat until you reach 1</span></span>
         </div>
 
         <div class="landing-card reveal">
-            <label class="landing-card-label" for="landing-input" data-i18n="home.enterNumber">Введите число</label>
+            <label class="landing-card-label" for="landing-input" data-i18n="home.enterNumber">Enter your number</label>
             <input
                 id="landing-input"
                 class="landing-input"
@@ -60,15 +60,15 @@
                 value="27"
                 data-i18n="home.placeholder"
                 data-i18n-attr="placeholder"
-                placeholder="число"
+                placeholder="number"
             >
             <p id="landing-error" class="landing-error" aria-live="polite"></p>
 
-            <button id="landing-start" class="landing-start" type="button" data-i18n="home.start">Запустить</button>
+            <button id="landing-start" class="landing-start" type="button" data-i18n="home.start">Start</button>
 
             <div class="landing-secondary">
-                <a href="guide.html" data-i18n="home.howItWorks">Как это работает</a>
-                <a href="guide.html?tab=about" data-i18n="home.about">О проекте</a>
+                <a href="guide.html" data-i18n="home.howItWorks">How it works</a>
+                <a href="guide.html?tab=about" data-i18n="home.about">About</a>
             </div>
         </div>
     </main>
