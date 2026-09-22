@@ -1,0 +1,487 @@
+/* =========================================================================
+   COLLATZIUM — Landing / Guide / Loader styles
+   Vanilla port of the Astra intro, restyled to MVP6's slate/indigo look.
+   No theme system, no CSS variables from Astra — just this palette.
+   ========================================================================= */
+
+:root {
+  --clz-grad: linear-gradient(135deg, #6366f1, #8b5cf6);
+  --clz-grad-hover: linear-gradient(135deg, #818cf8, #a78bfa);
+  --clz-accent: #818cf8;
+  --clz-accent-soft: rgba(99, 102, 241, 0.16);
+}
+
+/* ---------- Shared gradient text ---------- */
+.gradient-text {
+  background-image: var(--clz-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* =========================================================================
+   LOADING SCREEN
+   ========================================================================= */
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  background: #0b1020;
+  opacity: 1;
+  transition: opacity 500ms ease;
+}
+.loader-overlay.loader-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loader-spinner {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+.loader-ring {
+  position: absolute;
+  border-radius: 9999px;
+  border: 3px solid rgba(148, 163, 184, 0.18);
+}
+.loader-ring-outer {
+  inset: 0;
+  border-top-color: #6366f1;
+  animation: clz-spin 0.9s linear infinite;
+}
+.loader-ring-inner {
+  inset: 12px;
+  border-bottom-color: #a78bfa;
+  animation: clz-spin 1.4s linear infinite reverse;
+}
+@keyframes clz-spin {
+  to { transform: rotate(360deg); }
+}
+
+.loader-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  padding-left: 0.3em; /* balance the tracking on the right */
+}
+
+.loader-quote {
+  max-width: 28rem;
+  padding: 0 1.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  font-style: italic;
+  color: #9fb0d8;
+  min-height: 2.5em;
+}
+.loader-quote-in {
+  animation: clz-quote-in 0.4s ease-out;
+}
+@keyframes clz-quote-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================================================
+   STARFIELD BACKGROUND (landing + guide)
+   ========================================================================= */
+.clz-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  background:
+    radial-gradient(1100px 700px at 50% -10%, rgba(99, 102, 241, 0.14), transparent 60%),
+    radial-gradient(900px 600px at 85% 100%, rgba(139, 92, 246, 0.10), transparent 55%),
+    #0b1020;
+}
+.clz-star {
+  position: absolute;
+  border-radius: 9999px;
+  background: #eaf0ff;
+  animation: clz-twinkle var(--dur, 3s) ease-in-out var(--delay, 0s) infinite;
+}
+@keyframes clz-twinkle {
+  0%, 100% { opacity: 0.12; }
+  50%      { opacity: 0.85; }
+}
+
+/* =========================================================================
+   LANDING PAGE
+   ========================================================================= */
+.landing-main {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100%;
+  padding: 2.5rem 1.5rem;
+  gap: 0;
+  box-sizing: border-box;
+}
+
+.landing-title {
+  text-align: center;
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  font-size: clamp(3rem, 13vw, 8.5rem);
+  margin: 0;
+  filter: drop-shadow(0 12px 40px rgba(99, 102, 241, 0.25));
+}
+.landing-title .title-astra { display: block; }
+.landing-title .title-collatz {
+  display: block;
+  color: #f1f5f9;
+}
+
+.landing-tagline {
+  margin-top: 1.25rem;
+  max-width: 30rem;
+  text-align: center;
+  font-size: 1rem;
+  color: #9fb0d8;
+}
+
+.landing-rules {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  max-width: 40rem;
+}
+.landing-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  color: #b8c4e0;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  backdrop-filter: blur(10px);
+}
+.landing-pill .pill-num {
+  font-weight: 700;
+  color: var(--clz-accent);
+}
+
+/* ---- Entrance animations (fallback if anime.js absent) ---- */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.reveal.reveal-in {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---- top-right language toggle ---- */
+.landing-lang {
+  position: fixed;
+  right: 1rem;
+  top: 1rem;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #b8c4e0;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.landing-lang:hover { color: #fff; border-color: rgba(148, 163, 184, 0.4); }
+.landing-lang:active { transform: scale(0.94); }
+
+/* =========================================================================
+   INPUT CARD (landing)
+   ========================================================================= */
+.landing-card {
+  margin-top: 2rem;
+  width: 100%;
+  max-width: 24rem;
+  padding: 1.5rem;
+  border-radius: 1.75rem;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(16px);
+  box-sizing: border-box;
+}
+.landing-card-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #8fa0d0;
+}
+.landing-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  font-family: ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-size: 1.125rem;
+  color: #eaf0ff;
+  background: #0c1226;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.landing-input:focus {
+  border-color: var(--clz-accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+}
+.landing-input.is-error {
+  border-color: #fb7185;
+}
+.landing-error {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #fb7185;
+  min-height: 1.2em;
+}
+
+.landing-start {
+  margin-top: 1rem;
+  width: 100%;
+  padding: 0.9rem;
+  border: none;
+  border-radius: 1rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  background-image: var(--clz-grad);
+  box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.5);
+  transition: transform 0.1s ease, background-image 0.2s ease, box-shadow 0.2s ease;
+}
+.landing-start:hover {
+  background-image: var(--clz-grad-hover);
+  box-shadow: 0 12px 34px -8px rgba(129, 140, 248, 0.6);
+}
+.landing-start:active { transform: scale(0.98); }
+
+.landing-secondary {
+  margin-top: 0.75rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+.landing-secondary a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: #eaf0ff;
+  background: rgba(30, 41, 82, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.landing-secondary a:hover { background: rgba(51, 65, 105, 0.65); }
+.landing-secondary a:active { transform: scale(0.96); }
+
+/* =========================================================================
+   GUIDE PAGE
+   ========================================================================= */
+.guide-main {
+  position: relative;
+  margin: 0 auto;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 48rem;
+  padding: 2.5rem 1.5rem;
+  box-sizing: border-box;
+}
+.guide-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  text-decoration: none;
+  color: #b8c4e0;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  transition: color 0.15s ease, transform 0.1s ease;
+}
+.guide-back:hover { color: #fff; }
+.guide-back:active { transform: scale(0.96); }
+
+.guide-title {
+  margin: 0 0 1.5rem;
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  font-weight: 900;
+  color: #f1f5f9;
+}
+
+.guide-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+.guide-tab {
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #b8c4e0;
+  background: rgba(30, 41, 82, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+.guide-tab:hover { color: #fff; }
+.guide-tab:active { transform: scale(0.96); }
+.guide-tab.is-active {
+  color: #fff;
+  background-image: var(--clz-grad);
+  border-color: transparent;
+}
+
+.guide-article {
+  padding: 1.5rem;
+  border-radius: 1.75rem;
+  line-height: 1.7;
+  color: #b8c4e0;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(16px);
+}
+.guide-panel { animation: clz-quote-in 0.35s ease-out; }
+.guide-panel[hidden] { display: none; }
+
+.guide-article h2 {
+  margin: 1.5rem 0 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+.guide-article h2:first-child { margin-top: 0; }
+.guide-article p { margin: 0 0 0.5rem; }
+.guide-article ul {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+  list-style: disc;
+}
+.guide-article ul li { margin-bottom: 0.25rem; }
+.guide-article b { color: #eaf0ff; }
+.guide-article sup { font-size: 0.7em; }
+
+.guide-formula {
+  margin: 1rem 0;
+  padding: 1rem;
+  text-align: center;
+  border-radius: 1rem;
+  font-family: ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-size: 1.05rem;
+  color: #eaf0ff;
+  background: #0c1226;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+.guide-formula .op-even { color: #34d399; }
+.guide-formula .op-odd { color: #60a5fa; }
+
+.guide-quote {
+  margin: 1.25rem 0;
+  padding: 1rem 1.25rem;
+  text-align: center;
+  font-style: italic;
+  border-radius: 1rem;
+  background: var(--clz-accent-soft);
+  border-left: 3px solid var(--clz-accent);
+}
+.guide-quote p { color: #eaf0ff; margin: 0; }
+.guide-quote footer {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  font-style: normal;
+  color: #8fa0d0;
+}
+
+.guide-kbds {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+.guide-kbd-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  background: #0c1226;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+.guide-kbd-row kbd {
+  padding: 0.1rem 0.5rem;
+  border-radius: 0.4rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: #eaf0ff;
+  background: var(--clz-accent-soft);
+}
+
+.guide-link {
+  display: inline-block;
+  margin-top: 0.25rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: #fff;
+  background-image: var(--clz-grad);
+  transition: background-image 0.2s ease, transform 0.1s ease;
+}
+.guide-link:hover { background-image: var(--clz-grad-hover); }
+.guide-link:active { transform: scale(0.97); }
+.guide-link.is-plain {
+  color: #eaf0ff;
+  background-image: none;
+  background: rgba(30, 41, 82, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+@media (max-width: 520px) {
+  .guide-kbds { grid-template-columns: 1fr; }
+}
+
+/* =========================================================================
+   VIEW TRANSITIONS (landing <-> guide, cross-document)
+   ========================================================================= */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.35s;
+  }
+}
