@@ -1,14 +1,13 @@
 import { state } from "../ESmodules/state/state.js";
+import { outputMode_EventTarget } from "../ESmodules/state/eventTargets.js";
 import { sendOutputMode_ChangeEvent } from '../ESmodules/state/events.js';
 
-// ------ CONSTANTS & SHARED EVENT BUS ------ \\
+// ------ CONSTANTS ------ \\
 const VALID_MODES = ['instant', 'auto', 'manual']; /* allowed output modes */
 const PADDING = 5;                                 /* inner padding for the slider math */
 const MANUAL_DIVIDER_GAP = 2;                      /* extra left gap at Auto/Manual boundary */
 const MANUAL_END_INSET = 2;                        /* extra right gap so Manual slider doesn't hug the edge */
 const SMOOTH_EASING = 'cubicBezier(0.16, 1, 0.3, 1)'; /* anime.js easing for slider motion */
-
-export const outputMode_EventTarget = new EventTarget(); /* global bus for mode changes */
 
 class OutputModeControl extends HTMLElement {
     constructor() {

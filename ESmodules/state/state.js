@@ -14,8 +14,6 @@ export const state = {
     // ... and so on
 }
 
-export const stateTarget = new EventTarget();
-
 export const speedState = {
     intervalMs: 0,
     batchSize: 1,
@@ -56,20 +54,14 @@ but people will be able to change this
 //     ifOdd: dflt,   /* n × 3 + 1 */
 // }
 
-
-export const TUMBLERS = {
-    collatz_received: false,
+// Unused for now:
+// export const STATISTICS = {
     
-    // ... and so on
-}
+// }
 
-export const STATISTICS = {
-    
-}
+// export const SBS_STATISTICS = {
 
-export const SBS_STATISTICS = {
-
-}
+// }
 
 
 

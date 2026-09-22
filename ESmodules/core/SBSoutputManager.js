@@ -1,10 +1,9 @@
-import { state, stateTarget, speedState, SBSconfig } from "../state/state.js";
+import { state, speedState, SBSconfig } from "../state/state.js";
+import { SBSeventTarget, stateTarget } from "../state/eventTargets.js";
 import { sendSBS_Data, sendSBS_DoneEvent, sendSBS_DataRemoveEvent } from "../state/events.js";
 import { resetSBS } from "../state/stateManager.js";
 
 // SBS = Step By Step 
-
-export const SBSeventTarget = new EventTarget();
 
 export let currentBatch = []; // I decided to make it so even if batch size is 1, it still gets send as an array
 

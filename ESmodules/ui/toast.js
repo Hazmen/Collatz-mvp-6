@@ -1,4 +1,4 @@
-import { getToastContainer, getToastTemplate, toastRoot } from '../uiElements.js';
+import { getToastContainer, getToastTemplate, toastRoot } from './uiElements.js'
 
 // ------ CONSTANTS ------ \\
 const MAX_VISIBLE = 5;               /* max toasts on screen */

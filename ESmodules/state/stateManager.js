@@ -1,4 +1,4 @@
-import { state, TUMBLERS, speedState, SBSconfig } from "./state.js";
+import { state, speedState, SBSconfig } from "./state.js";
 
 // STATE 
 export function getState() { return state; }
@@ -8,9 +8,9 @@ export function setState(patch) { Object.assign(state, patch); }
 export function setStateValue(obj, value) { state[obj] = value; }
 
 // TUMBLERS
-export function getToogleSwitch(ts) { return TUMBLERS[ts].value; }
-export function setToogleSwitch(ts, st) { return TUMBLERS[ts] = st; }
-export function getAllToogles() { return TUMBLERS; }
+// export function getToogleSwitch(ts) { return TUMBLERS[ts].value; }
+// export function setToogleSwitch(ts, st) { return TUMBLERS[ts] = st; }
+// export function getAllToogles() { return TUMBLERS; }
 
 // SPEED STATE
 export function getSpeedState() { return speedState; }

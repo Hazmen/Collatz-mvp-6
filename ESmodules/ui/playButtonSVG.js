@@ -1,5 +1,7 @@
-import { SBSconfig, state, stateTarget } from "../state/state.js";
+import { SBSconfig, state } from "../state/state.js";
+import { stateTarget } from "../state/eventTargets.js";
 import { runButton } from "./uiElements.js";
+import { toogle_Controllers_Visibility } from "./outputModeController_Logic.js";
 
 export function PlayOrPause() {
     SBSconfig.isRunning = !SBSconfig.isRunning;
@@ -56,10 +58,20 @@ export function clearRunLoading() {
 
 stateTarget.addEventListener('collatz_done', ()=>{ 
     clearRunLoading(); 
-    if(state.outputMode === 'auto') setRunButtonMode(true); 
+    if(state.outputMode === 'auto') setRunButtonMode(true);
+    else if(state.outputMode === 'manual') {
+        // ------ S1 -> S2: hide Run, show +/-. No setRunButtonMode(true). ------ \\
+        toogle_Controllers_Visibility(false, false, true);
+        if(runButton) runButton.disabled = true;   /* Run stays disabled until HardReset */
+    }
 });
 
 stateTarget.addEventListener('collatz_error', ()=>{ 
     clearRunLoading(); 
     setRunButtonMode(false); 
+    if(state.outputMode === 'manual') {
+        // ------ S1 -> S0 on error: Run back, +/- hidden. ------ \\
+        toogle_Controllers_Visibility(true, false, false);
+        if(runButton) runButton.disabled = false;
+    }
 });

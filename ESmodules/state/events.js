@@ -97,4 +97,25 @@ export function sendOutputMode_ChangeEvent(target, mode) {
     console.log('Output Mode Changed');
 }
 
+// -------------- RESET EVENTS -------------- \\
+export function sendReset_RequestEvent(resetType, target) {
+    const ResetRequestEvent = new CustomEvent('reset_request', {
+        detail: {
+            status: 'reset_requested',
+            type: resetType
+        }
+    });
 
+    target.dispatchEvent(ResetRequestEvent);
+}
+
+export function sendReset_DoneEvent(resetType, target) {
+    const ResetDoneEvent = new CustomEvent('reset_done', {
+        detail: {
+            status: 'reset_successful',
+            type: resetType
+        }
+    });
+
+    target.dispatchEvent(ResetDoneEvent);
+}

@@ -1,6 +1,6 @@
-import { state, stateTarget } from "../state/state.js";
+import { state } from "../state/state.js";
+import { stateTarget } from "../state/eventTargets.js";
 import * as ev from "../state/events.js"
-import { setToogleSwitch } from "../state/stateManager.js";
 const worker = new Worker(new URL('./collatz.worker.js', import.meta.url), { type: 'module' });
 
 
@@ -18,10 +18,6 @@ worker.onmessage = (e) => {
 
     // it is done sending chunks, it sends the amount of steps the number got and the biggest number in sequence
     if (e.data.type === 'done') {
-        
-        // switch its assigned toogle switch to True
-        setToogleSwitch('collatz_received', true);
-        
         // new badass way to write all the data :DDDD
         state.isComputing = false;
         ev.sendCollatz_SecondaryData( state, e.data.max, e.data.steps, stateTarget );

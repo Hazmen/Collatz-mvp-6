@@ -1,4 +1,4 @@
-import { SBSeventTarget } from "../../core/SBSoutputManager.js";
+import { SBSeventTarget } from "../../state/eventTargets.js";
 
 import { seqList_Elements } from "../../ui/uiElements.js";
 import { txtListObj_create } from "./sequenceView_Logic.js";

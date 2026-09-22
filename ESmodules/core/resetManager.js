@@ -1,7 +1,8 @@
 import { resetState, resetSBS } from "../state/stateManager.js";
 import { sendSBS_ClearEvent } from "../state/events.js";
 import { setRunButtonMode } from "../ui/playButtonSVG.js";
-import { clearSBSTimer, SBSeventTarget } from "./SBSoutputManager.js";
+import { clearSBSTimer } from "./SBSoutputManager.js";
+import { SBSeventTarget } from "../state/eventTargets.js";
 
 /*
     ЕДИНАЯ ТОЧКА СБРОСА СЕССИИ

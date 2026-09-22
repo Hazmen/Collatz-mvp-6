@@ -1,5 +1,5 @@
 import { state, speedState } from "../ESmodules/state/state.js";
-import { outputMode_EventTarget } from "./outputModeController.js";
+import { outputMode_EventTarget } from "../ESmodules/state/eventTargets.js";
 
 class SpeedController extends HTMLElement {
     constructor() {

@@ -1,12 +1,16 @@
 import { runProcess_Elements, mainInputField } from "./uiElements.js";
 import { getSpecificState, setStateValue } from "../state/stateManager.js";
 import { workerManager_Recieve } from "../workers/workerManager.js";
-import { setRunButtonMode, setRunLoading } from "./playButtonSVG.js";
+import { setRunButtonMode, setRunLoading, clearRunLoading } from "./playButtonSVG.js";
 import { state, SBSconfig } from "../state/state.js";
-import { pauseSBS, resumeSBS, skipSBS, SBSeventTarget, startSBS, addOneBatchSBS, removeOneBatchSBS } from "../core/SBSoutputManager.js";
+import { toogle_Controllers_Visibility } from "./outputModeController_Logic.js";
+import { pauseSBS, resumeSBS, skipSBS, startSBS, addOneBatchSBS, removeOneBatchSBS } from "../core/SBSoutputManager.js";
+import { SBSeventTarget } from "../state/eventTargets.js";
 import { resetOutputOnly, resetSession } from "../core/resetManager.js";
 import { guard } from "./runProcessControls_guard.js";
 import { bindPress } from "./bindKeypressAnimation.js";
+import { reset_EventTarget } from "../state/eventTargets.js";
+import { sendReset_DoneEvent } from "../state/events.js";
 
 // ------ MODULE: WIRE UP ALL RUN/SKIP/RESET CONTROLS ------ \\
 
@@ -23,7 +27,20 @@ function startRunProcess() {
     const can_Pause = guard.sbsAuto_canPause();                  /* SBS is ticking */
     const can_Resume = guard.sbsAuto_canResume();                /* paused with remainder */
 
-    if (state.outputMode === 'manual') return;              /* manual is driven by +/-, not Run */
+    if (state.outputMode === 'manual') {
+        // ------ MANUAL S0 -> S1: Run starts the computation ------ \\
+        if (state.isComputing) return;                          /* S1: ignore while busy */
+        if (state.workerResult.length > 0) return;              /* S2: hidden Run ignored */
+        if (!is_ValidInput) {
+            alert('Error! Your input must contain only numbers and cannot be empty!');
+            return;
+        }
+        resetSession();                                         /* wipe previous data/DOM */
+        setStateValue('activeInputValue', BigInt(mainInputField.value));
+        workerManager_Recieve(getSpecificState('activeInputValue'));
+        setRunLoading();                                        /* S1: ring-resize.svg + disabled */
+        return;
+    }              /* manual is otherwise driven by +/-, not Run */
 
     // ------ PRE-CHECK: VALIDATE INPUT ------ \\
     if (!is_ValidInput) {
@@ -124,18 +141,25 @@ export function resetProcess() {
 }
 
 // ------ HARD RESET (Shift+R) ------ \\
-/* full wipe incl. workerResult — escape hatch — controller only, toast is in reset-toast.js */
+/* full wipe incl. workerResult — escape hatch — controller only, UI lives in hard-reset.js */
 export function hardResetProcess() {
     if (state.isComputing) return false;                    /* still don't abort mid-compute */
     setRunButtonMode(false);
     resetSession();                                         /* clear output + workerResult/errorCause */
+    if (state.outputMode === 'manual') {
+        // ------ S2 -> S0: only HardReset returns Run ------ \\
+        clearRunLoading();                                  /* drop spinner state, re-enable */
+        setRunButtonMode(false);                            /* Play icon */
+        toogle_Controllers_Visibility(true, false, false);  /* S0: only Run */
+        if (runProcess_Elements.runButton) runProcess_Elements.runButton.disabled = false;
+    }
     return true;
 }
 
 // ------ MANUAL: ADD ONE BATCH (doubles as Run in manual) ------ \\
 function startManualAddProcess() {
     if (state.outputMode !== 'manual') return;                  /* manual only */
-    if (state.isComputing) return;                              /* worker busy */
+    if (state.isComputing || state.workerResult.length === 0) return; /* S0/S1: +/- ignored */
 
     if (!guard.validateInput()) {                               /* bad input -> abort */
         alert('Error! Your input must contain only numbers and cannot be empty!');
@@ -150,6 +174,7 @@ function startManualAddProcess() {
         resetSession();                                         /* wipe old data */
         setStateValue('activeInputValue', BigInt(mainInputField.value));
         workerManager_Recieve(getSpecificState('activeInputValue'));
+        toogle_Controllers_Visibility(true, false, false);      /* S1: only Run visible */
         setRunLoading();
         return;
     }
@@ -165,6 +190,7 @@ function startManualAddProcess() {
 // ------ MANUAL: REMOVE ONE BATCH ------ \\
 function removeOneBatchProcess() {
     if (state.outputMode !== 'manual') return;                  /* manual only */
+    if (state.isComputing || state.workerResult.length === 0) return; /* S0/S1: +/- ignored */
     removeOneBatchSBS();                                        /* hide last shown batch */
 }
 
@@ -174,7 +200,10 @@ function removeOneBatchProcess() {
 runProcess_Elements.runButton.addEventListener('click', () => {
     startRunProcess();                                      /* click → main flow */
 });
-bindPress(runProcess_Elements.runButton, 'Space', startRunProcess, () => state.outputMode !== 'manual', false); /* keyboard mirror */
+bindPress(runProcess_Elements.runButton, 'Space', startRunProcess, () => {
+    if (state.outputMode !== 'manual') return true;             /* auto/instant: as before */
+    return !state.isComputing && state.workerResult.length === 0; /* manual: Space only in S0 */
+}, false); /* keyboard mirror */
 
 // ------ AUTO-RETURN BUTTON WHEN OUTPUT FINISHES ------ \\
 SBSeventTarget.addEventListener('sbs_done', () => {
@@ -188,10 +217,18 @@ runProcess_Elements.skipButton.addEventListener('click', () => {
 });
 bindPress(runProcess_Elements.skipButton, 'KeyF', skipProcess, () => state.outputMode !== 'instant', false);
 
+// ------ RESET BUS: UI --request--> rPC --done--> UI ------ \\
+/* hard-reset.js шлёт intent, здесь только исполнение + done. Кнопок тут нет. */
+reset_EventTarget.addEventListener('reset_request', (e) => {
+    const type = e?.detail?.type === 'hard' ? 'hard' : 'soft';
+    const ok = type === 'hard' ? hardResetProcess() : resetProcess();
+    if (ok) sendReset_DoneEvent(type, reset_EventTarget); /* toast только при успехе */
+});
+
 // ------ MANUAL: NEXT BATCH (+) + Z ------ \\
 runProcess_Elements.nextButton.addEventListener('click', startManualAddProcess); /* + button */
-bindPress(runProcess_Elements.nextButton, 'KeyZ', startManualAddProcess, () => state.outputMode === 'manual', true); /* Z key */
+bindPress(runProcess_Elements.nextButton, 'KeyZ', startManualAddProcess, () => state.outputMode === 'manual' && !state.isComputing && state.workerResult.length > 0, true); /* Z key */
 
 // ------ MANUAL: BACK BATCH (-) + X ------ \\
 runProcess_Elements.backButton.addEventListener('click', removeOneBatchProcess); /* - button */
-bindPress(runProcess_Elements.backButton, 'KeyX', removeOneBatchProcess, () => state.outputMode === 'manual', true); /* X key */
+bindPress(runProcess_Elements.backButton, 'KeyX', removeOneBatchProcess, () => state.outputMode === 'manual' && !state.isComputing && state.workerResult.length > 0, true); /* X key */
