@@ -31,7 +31,20 @@ if (overlay) {
     const lang = getLang() === 'ru' ? 'ru' : 'en';
     const text = lang === 'ru' ? current.ru : current.en;
     const by = lang === 'ru' ? current.byRu : current.byEn;
-    quoteEl.textContent = `\u201C${text}\u201D`;
+    quoteEl.textContent = '';
+    if (current.img) {
+      const img = document.createElement('img');
+      img.src = current.img;
+      img.alt = text;
+      img.className = 'loader-gif';
+      img.draggable = false;
+      quoteEl.appendChild(img);
+      const caption = document.createElement('span');
+      caption.textContent = `\u201C${text}\u201D`;
+      quoteEl.appendChild(caption);
+    } else {
+      quoteEl.textContent = `\u201C${text}\u201D`;
+    }
     if (authorEl) {
       authorEl.textContent = by || '';
       authorEl.hidden = !by;

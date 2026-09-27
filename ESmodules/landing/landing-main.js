@@ -34,15 +34,27 @@ function reveal() {
   const nodes = document.querySelectorAll('.reveal');
   const hasAnime = typeof window.anime === 'function';
   if (hasAnime) {
+    // Disable CSS transitions while anime.js drives transform/opacity per-frame.
+    // Otherwise the hover transition (e.g. .landing-card transform 0.18s)
+    // applies on top of every JS frame and the start looks sharp/janky.
+    nodes.forEach((n) => { n.style.transition = 'none'; });
     window.anime({
       targets: '.reveal',
       opacity: [0, 1],
       translateY: [20, 0],
       easing: 'easeOutCubic',
-      duration: 550,
+      duration: 650,
       delay: window.anime.stagger(120, { start: 100 }),
+      complete: () => {
+        nodes.forEach((n) => {
+          n.style.transition = '';
+          n.style.opacity = '';
+          n.style.transform = '';
+          n.classList.remove('reveal');
+          n.classList.add('reveal-in');
+        });
+      },
     });
-    nodes.forEach((n) => { n.style.opacity = ''; n.style.transform = ''; });
   } else {
     nodes.forEach((n, i) => setTimeout(() => n.classList.add('reveal-in'), 100 + i * 120));
   }

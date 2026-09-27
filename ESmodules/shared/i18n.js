@@ -21,6 +21,7 @@ export const QUOTES = [
   { en: 'No counterexample below 2⁷¹. That is still 0% of infinity.', ru: 'Нет контрпримера ниже 2⁷¹. Но это всё ещё 0% бесконечности.', byEn: 'D. Barina · 2025', byRu: 'Д. Барина · 2025' },
   { en: 'Almost all numbers fall almost all the way down. Almost.', ru: 'Почти все числа падают почти до самого низа. Почти.', byEn: 'Terence Tao · 2019', byRu: 'Теренс Тао · 2019' },
   { en: 'If you’re a math student, remember not to waste your time on Collatz.', ru: 'Если ты студент-математик — не трать время на Коллатц.', byEn: '', byRu: '' },
+  { en: '', ru: '', byEn: 'Rick Astley · 1987', byRu: 'Рик Эстли · 1987', img: 'assets/media/images/rickroll.gif' },
 ];
 
 export const translations = {
@@ -34,9 +35,9 @@ export const translations = {
     'home.howItWorks': 'Как это работает',
     'home.about': 'О проекте',
     'home.tagline': 'Все числа ведут к единице. Но так ли это?',
-    'home.rule1': 'Чётное - делим на 2',
-    'home.rule2': 'Нечётное - умножаем на 3 и прибавляем 1',
-    'home.rule3': 'Повторяем, пока не дойдём до 1',
+    'home.rule1': 'Дели на 2, если чётное',
+    'home.rule2': 'Умножай на 3 и прибавляй 1, если нечётное',
+    'home.rule3': 'Повторяй, пока не дойдешь до 1',
 
     'nav.back': 'Назад',
 
@@ -60,9 +61,9 @@ export const translations = {
     'home.howItWorks': 'How it works',
     'home.about': 'About',
     'home.tagline': 'Any number leads to one. Or does it?',
-    'home.rule1': 'Even - divide by 2',
-    'home.rule2': 'Odd - multiply by 3 and add 1',
-    'home.rule3': 'Repeat until you reach 1',
+    'home.rule1': 'Divide by 2 if even',
+    'home.rule2': 'Multiply by 3 and add 1 if odd',
+    'home.rule3': 'Repeat, and you will reach 1',
 
     'nav.back': 'Back',
 
