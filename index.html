@@ -25,7 +25,7 @@
             <span class="loader-ring loader-ring-inner"></span>
         </div>
         <div class="loader-title gradient-text">COLLATZIUM</div>
-        <p class="loader-quote" data-loader-quote></p>
+        <p class="loader-quote"><span data-loader-quote></span><cite data-loader-author></cite></p>
     </div>
 
     <!-- animated backdrop -->
@@ -40,7 +40,7 @@
             <span class="title-collatz">COLLATZ</span>
         </h1>
 
-        <p class="landing-tagline reveal" data-i18n="home.tagline">Any number. One law. Always one?</p>
+        <p class="landing-tagline reveal" data-i18n="home.tagline">All numbers lead to one.</p>
 
         <div class="landing-rules reveal">
             <span class="landing-pill"><span class="pill-num">1.</span><span data-i18n="home.rule1">Even — divide by 2</span></span>
@@ -49,27 +49,56 @@
         </div>
 
         <div class="landing-card reveal">
-            <label class="landing-card-label" for="landing-input" data-i18n="home.enterNumber">Enter your number</label>
-            <input
-                id="landing-input"
-                class="landing-input"
-                type="text"
-                inputmode="numeric"
-                autocomplete="off"
-                autofocus
-                value="27"
-                data-i18n="home.placeholder"
-                data-i18n-attr="placeholder"
-                placeholder="number"
-            >
+            <div class="landing-top">
+                <label class="landing-card-label" for="landing-input" data-i18n="home.enterNumber">Enter your number</label>
+                <span class="landing-count"><b id="landing-len">2</b>/101</span>
+            </div>
+            <div class="landing-field">
+                <input
+                    id="landing-input"
+                    class="landing-input"
+                    type="text"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    autofocus
+                    value="27"
+                    data-i18n="home.placeholder"
+                    data-i18n-attr="placeholder"
+                    placeholder="number"
+                >
+                <div class="landing-tools">
+                    <button class="landing-tool" id="landing-clear" type="button" title="Clear" aria-label="Clear input">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8.086 2.207a2 2 0 0 1 2.828 0l3.879 3.879a2 2 0 0 1 0 2.828l-5.5 5.5A2 2 0 0 1 7.879 15H5.12a2 2 0 0 1-1.414-.586l-2.5-2.5a2 2 0 0 1 0-2.828zm2.121.707a1 1 0 0 0-1.414 0L4.16 7.547l5.293 5.293 4.633-4.633a1 1 0 0 0 0-1.414zM8.746 13.547 3.453 8.254 1.914 9.793a1 1 0 0 0 0 1.414l2.5 2.5a1 1 0 0 0 .707.293H7.88a1 1 0 0 0 .707-.293z"/>
+                        </svg>
+                    </button>
+                    <button class="landing-tool" id="landing-dice" type="button" title="Random" aria-label="Random number">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                            <path d="M12 12h.01"/>
+                            <path d="M16 8h.01"/>
+                            <path d="M8 16h.01"/>
+                            <path d="M16 16h.01"/>
+                            <path d="M8 8h.01"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="landing-chips">
+                <p>Try these: </p>
+                <button class="landing-chip" type="button" data-n="27">27</button>
+                <button class="landing-chip" type="button" data-n="97">97</button>
+                <button class="landing-chip" type="button" data-n="871">871</button>
+                <button class="landing-chip" type="button" data-n="77031">77031</button>
+            </div>
             <p id="landing-error" class="landing-error" aria-live="polite"></p>
 
             <button id="landing-start" class="landing-start" type="button" data-i18n="home.start">Start</button>
+        </div>
 
-            <div class="landing-secondary">
-                <a href="guide.html" data-i18n="home.howItWorks">How it works</a>
-                <a href="guide.html?tab=about" data-i18n="home.about">About</a>
-            </div>
+        <div class="landing-secondary reveal">
+            <a href="guide.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span data-i18n="home.howItWorks">How it works</span></a>
+            <a href="guide.html?tab=about"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span data-i18n="home.about">About</span></a>
         </div>
     </main>
 

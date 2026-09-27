@@ -9,7 +9,7 @@
 // The overlay markup lives in each HTML file as #loader-overlay.
 // This module is a no-op if that element is absent.
 
-import { QUOTES, t } from './i18n.js';
+import { QUOTES, getLang } from './i18n.js';
 
 const MIN_VISIBLE_MS = 2000;
 const FADE_MS = 500;
@@ -20,13 +20,28 @@ const overlay = document.getElementById('loader-overlay');
 
 if (overlay) {
   const quoteEl = overlay.querySelector('[data-loader-quote]');
+  const authorEl = overlay.querySelector('[data-loader-author]');
   let quoteTimer = null;
+  let current = null;
 
   const pickQuote = () => QUOTES[Math.floor(Math.random() * QUOTES.length)];
 
+  const renderQuote = () => {
+    if (!quoteEl || !current) return;
+    const lang = getLang() === 'ru' ? 'ru' : 'en';
+    const text = lang === 'ru' ? current.ru : current.en;
+    const by = lang === 'ru' ? current.byRu : current.byEn;
+    quoteEl.textContent = `\u201C${text}\u201D`;
+    if (authorEl) {
+      authorEl.textContent = by || '';
+      authorEl.hidden = !by;
+    }
+  };
+
   const showQuote = () => {
     if (!quoteEl) return;
-    quoteEl.textContent = pickQuote();
+    current = pickQuote();
+    renderQuote();
     // retrigger the fade-in animation
     quoteEl.classList.remove('loader-quote-in');
     void quoteEl.offsetWidth;
@@ -35,6 +50,7 @@ if (overlay) {
 
   showQuote();
   quoteTimer = setInterval(showQuote, QUOTE_INTERVAL_MS);
+  window.addEventListener('langchange', renderQuote);
 
   const dismiss = () => {
     const elapsed = performance.now() - t0;

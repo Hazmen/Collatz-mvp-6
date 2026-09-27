@@ -54,31 +54,62 @@ function initInput() {
   const errorEl = document.getElementById('landing-error');
   const startBtn = document.getElementById('landing-start');
   if (!input || !startBtn) return;
+  const lenEl = document.getElementById('landing-len');
+  const clearBtn = document.getElementById('landing-clear');
+  const diceBtn = document.getElementById('landing-dice');
 
   const clean = (raw) =>
     raw.replace(/[^\d]/g, '').replace(/^0+(?=\d)/, '').slice(0, MAX_LEN);
 
   const setError = (msg) => {
-    errorEl.textContent = msg || '';
+    if (errorEl) errorEl.textContent = msg || '';
     input.classList.toggle('is-error', Boolean(msg));
+  };
+
+  const paint = () => {
+    if (lenEl) lenEl.textContent = String(input.value.length);
+    startBtn.disabled = input.value.length === 0;
   };
 
   input.addEventListener('input', () => {
     const c = clean(input.value);
     if (c !== input.value) input.value = c;
     setError('');
+    paint();
+  });
+
+  if (clearBtn) clearBtn.addEventListener('click', () => {
+    input.value = '';
+    setError('');
+    paint();
+    input.focus();
+  });
+
+  if (diceBtn) diceBtn.addEventListener('click', () => {
+    input.value = String(Math.floor(Math.random() * 100000) + 1);
+    setError('');
+    paint();
+  });
+
+  document.querySelectorAll('.landing-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      if (chip.dataset.n) input.value = chip.dataset.n;
+      setError('');
+      paint();
+    });
   });
 
   const start = () => {
     const value = input.value;
-    if (!value) { setError(t('error.empty')); return; }
-    if (!/^\d+$/.test(value) || value === '0') { setError(t('error.invalid')); return; }
+    if (!value) { setError(t('error.empty')); paint(); return; }
+    if (!/^\d+$/.test(value) || value === '0') { setError(t('error.invalid')); paint(); return; }
     try { sessionStorage.setItem('collatz-start', value); } catch { /* ignore */ }
     navigate('simulation.html');
   };
 
   startBtn.addEventListener('click', start);
   input.addEventListener('keydown', (e) => { if (e.key === 'Enter') start(); });
+  paint();
 }
 
 // ---- Cross-document navigation with View Transitions when available ----

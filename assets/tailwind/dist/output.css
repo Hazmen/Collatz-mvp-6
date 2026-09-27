@@ -244,6 +244,9 @@
   .sticky {
     position: sticky;
   }
+  .inset-0 {
+    inset: calc(var(--spacing) * 0);
+  }
   .top-0 {
     top: calc(var(--spacing) * 0);
   }
@@ -264,6 +267,9 @@
   }
   .z-40 {
     z-index: 40;
+  }
+  .z-100 {
+    z-index: 100;
   }
   .z-\[1\] {
     z-index: 1;
