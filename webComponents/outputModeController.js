@@ -48,32 +48,34 @@ class OutputModeControl extends HTMLElement {
             }
 
             .segCont_label {
-                font-size: 22px;
+                font-size: 18px;
                 font-weight: 800;
                 letter-spacing: -0.025em;
                 line-height: 1.1;
                 text-align: center;
                 color: #f1f5f9;
-                // text-shadow: 0 2px 18px rgba(99, 102, 241, 0.35), 0 1px 0 rgba(255,255,255,0.08);
+                text-shadow: 0 2px 18px rgba(99, 102, 241, 0.35), 0 1px 0 rgba(255,255,255,0.08);
                 margin: 0 0 2px 0;
                 position: relative;
                 padding-bottom: 10px;
                 user-select: none;
+                letter-spacing: 1.5px;
+                font-family: monospace;
             }
 
-            // .segCont_label::after {
-            //     content: "";
-            //     position: absolute;
-            //     left: 50%;
-            //     bottom: 0;
-            //     transform: translateX(-50%);
-            //     width: 36px;
-            //     height: 3px;
-            //     border-radius: 9999px;
-            //     background: linear-gradient(90deg, #6366f1, #8b5cf6);
-            //     box-shadow: 0 0 14px rgba(99, 102, 241, 0.7), 0 0 6px rgba(139, 92, 246, 0.5);
-            //     opacity: 0.95;
-            // }
+            .segCont_label::after {
+                content: "";
+                position: absolute;
+                left: 50%;
+                bottom: 0;
+                transform: translateX(-50%);
+                width: 36px;
+                height: 3px;
+                border-radius: 9999px;
+                background: linear-gradient(90deg, #6366f1, #8b5cf6);
+                box-shadow: 0 0 14px rgba(99, 102, 241, 0.7), 0 0 6px rgba(139, 92, 246, 0.5);
+                opacity: 0.95;
+            }
 
             .segmented-control {
                 position: relative;
@@ -86,13 +88,13 @@ class OutputModeControl extends HTMLElement {
                 padding: ${PADDING}px;
                 user-select: none;
                 box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 30px var(--accent-glow);
-                margin: 25px auto;
+                margin: 10px auto;
                 box-sizing: border-box;
             }
 
             .slider {
                 position: absolute;
-                top: ${PADDING}px;
+                top: ${PADDING-.8}px;
                 left: ${PADDING}px;
                 height: calc(100% - ${PADDING * 2}px);
                 width: calc(50% - ${PADDING}px);

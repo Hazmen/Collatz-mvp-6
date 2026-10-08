@@ -28,6 +28,7 @@ export function computeSBSStats(visibleItems, peakNumber, startValue) {
         start: startValue,       /* state.activeInputValue — the starting n */
         steps: BigInt(visibleItems.length), /* steps shown so far, as a count */
     };
+    ctx.EO = countEOverO(ctx);   /* one E/O pass here — every stat below reuses it */
 
     return {
         allEvenNums: getAllEvenNums(ctx),
@@ -68,6 +69,8 @@ export function computeSBSStats(visibleItems, peakNumber, startValue) {
 
 // ------ Shared single-pass E/O counter (over transitions, not items) ------ //
 function countEOverO(ctx) {
+    if (ctx.EO) return ctx.EO;   /* cached by computeSBSStats — one pass per tick, not per stat */
+
     const { data } = ctx;
 
     let E = 0;   /* halving steps */
@@ -176,6 +179,9 @@ function getCountOfMonotoneSegments(ctx) {
 // ------ Even-to-odd step ratio (the E/O factor) ------ //
 function getEoverO(ctx) {
     const { E, O } = countEOverO(ctx);
+
+    if (O === 0) return E === 0 ? 0 : Infinity;   /* 0-1 items shown — avoid NaN */
+
     return E / O;
 }
 
@@ -312,13 +318,14 @@ function getHeavyStepsCount(ctx) {
 // ------ Overshoot: how many times the running peak exceeded the start ------ //
 function getOvershoot(ctx) {
     const { peak, start } = ctx;
+    if (start === 0n) return 0n;   /* start not set yet */
     return peak / start;
 }
 
 // ------ Peak-to-start and peak-to-steps ratios (2 decimals) ------ //
 function getPeakToStartAndStepsRatio(ctx) {
     const { peak, start, steps } = ctx;
-    if (steps === 0n) return { peakToStart: '0.00', peakToSteps: '0.00' };
+    if (steps === 0n || start === 0n) return { peakToStart: '0.00', peakToSteps: '0.00' };
 
     const intPart = peak / start;
     const fracPart = (peak % start) * 100n / start;
@@ -357,21 +364,22 @@ function getMedian(ctx) {
         : (sorted[mid - 1] + sorted[mid]) / 2n);
 }
 
-// ------ Standard deviation of the log-2 bit lengths ------ //
+// ------ Standard deviation of the log-2 magnitudes (bit lengths) ------ //
+// NOTE: bit length ~= log2(value). (Previously log2(bitlen) — a double log, ~0 always.)
 function getLogStd(ctx) {
     const { data } = ctx;
     if (data.length === 0) return 0;
 
     let sumLog = 0;
     for (let i = 0; i < data.length; i++) {
-        sumLog += Math.log2(Number(data[i].toString(2).length));
+        sumLog += Number(data[i].toString(2).length);
     }
 
     const meanLog = sumLog / data.length;
     let sqSum = 0;
 
     for (let i = 0; i < data.length; i++) {
-        const deviation = Math.log2(Number(data[i].toString(2).length)) - meanLog;
+        const deviation = Number(data[i].toString(2).length) - meanLog;
         sqSum += deviation * deviation;
     }
 

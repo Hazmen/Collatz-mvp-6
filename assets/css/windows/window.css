@@ -1,0 +1,193 @@
+/* ==========================================================================
+   COLLATZIUM — Generic window chrome  (assets/css/windows/window.css)
+   --------------------------------------------------------------------------
+   Ported 1:1 from the <style> block of windows.html (showcase stays untouched).
+
+   SCOPE OF THIS FILE — only the reusable WINDOW SHELL:
+     1. Theme tokens (--win-*) used by every window
+     2. Scoped box-sizing reset for the window subtree
+     3. Overlay + backdrop blur
+     4. Card (the window itself)
+     5. Header strip (title bar)
+     6. Themed scrollbar for any scrollable region inside a window
+     7. Footer action bar + Cancel button
+
+   NOT here (on purpose):
+     - anything inside the window body  -> assets/css/windows/download-window.css
+     - showcase scaffolding of windows.html (.win-page-content, .win-start-wrapper,
+       .win-clickme, .win-color-picker-container) -> demo page only, not a window
+     - page-level `html, body` / global `*` reset -> belongs to layout.css / Tailwind preflight
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. THEME TOKENS
+   --win-primary-hex / --win-primary-rgb are rewritten at runtime by JS
+   (applyDynamicTheme in windows.html). Everything else derives from them,
+   so a single colour change re-themes the whole window.
+   -------------------------------------------------------------------------- */
+:root {
+    /* Базовые значения темы (будут динамически обновляться скриптом) */
+    --win-primary-hex: #3b82f6;
+    --win-primary-rgb: 59, 130, 246;
+
+    /* Вычисляемые цвета для темы окна */
+    --win-modal-surface: #0f1015;
+    --win-modal-border: rgba(var(--win-primary-rgb), 0.25);
+    --win-header-bg: rgba(var(--win-primary-rgb), 0.16);
+    --win-header-text: #ffffff;
+    --win-item-bg: rgba(255, 255, 255, 0.04);
+    --win-item-hover-bg: rgba(var(--win-primary-rgb), 0.1);
+    --win-item-border: rgba(255, 255, 255, 0.05);
+    --win-item-active-border: rgba(var(--win-primary-rgb), 0.4);
+    --win-accent-color: var(--win-primary-hex);
+    --win-accent-glow: rgba(var(--win-primary-rgb), 0.35);
+}
+
+/* --------------------------------------------------------------------------
+   2. SCOPED BOX-SIZING RESET
+   windows.html relied on a global `* { box-sizing: border-box }`. The main
+   project already gets that from Tailwind preflight, but this file must also
+   work standalone — so the reset is repeated, scoped to the window subtree
+   only, and never leaks into the host page.
+   -------------------------------------------------------------------------- */
+.win-modal-overlay,
+.win-modal-overlay *,
+.win-modal-overlay *::before,
+.win-modal-overlay *::after {
+    box-sizing: border-box;
+}
+
+/* --------------------------------------------------------------------------
+   3. TEXT SELECTION
+   Window chrome (and interactive controls) must not be text-selectable —
+   double-clicking a control should never paint a selection highlight.
+   -------------------------------------------------------------------------- */
+.win-modal-card,
+.win-modal-actions button {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* --------------------------------------------------------------------------
+   4. OVERLAY + BACKDROP BLUR
+   -------------------------------------------------------------------------- */
+.win-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.win-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* --------------------------------------------------------------------------
+   5. CARD — the window itself
+   -------------------------------------------------------------------------- */
+.win-modal-card {
+    width: 90%;
+    max-width: 410px;
+    max-height: calc(100vh - 40px);
+    background: var(--win-modal-surface);
+    border: 1px solid var(--win-modal-border);
+    border-radius: 28px;
+    padding: 14px 16px 20px 16px;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(var(--win-primary-rgb), 0.15);
+    transform: scale(0.92) translateY(10px);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.win-modal-overlay.active .win-modal-card {
+    transform: scale(1) translateY(0);
+}
+
+/* --------------------------------------------------------------------------
+   6. HEADER STRIP — title bar, separate bar on top with rounded corners
+   The background/border pair is intentionally left commented out: the default
+   look is a bare title, the framed variant is one uncomment away.
+   -------------------------------------------------------------------------- */
+.win-modal-header-strip {
+    width: 100%;
+    /* background: var(--win-header-bg);
+    border: 1px solid var(--win-modal-border); */
+    color: var(--win-header-text);
+    text-align: center;
+    padding: 13px 0;
+    border-radius: 18px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+/* --------------------------------------------------------------------------
+   7. THEMED SCROLLBAR (window-level look)
+   Any scrollable region inside a window picks up the accent-tinted thin
+   scrollbar. Apply `.win-window-scroll` to your own scroll container.
+   `.win-checkbox-group` is kept as an alias so the reference markup from
+   windows.html keeps working unchanged.
+   -------------------------------------------------------------------------- */
+.win-window-scroll,
+.win-checkbox-group {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--win-primary-rgb), 0.5) transparent;
+}
+
+.win-window-scroll::-webkit-scrollbar,
+.win-checkbox-group::-webkit-scrollbar {
+    width: 6px;
+}
+
+.win-window-scroll::-webkit-scrollbar-thumb,
+.win-checkbox-group::-webkit-scrollbar-thumb {
+    background: rgba(var(--win-primary-rgb), 0.45);
+    border-radius: 999px;
+}
+
+.win-window-scroll::-webkit-scrollbar-track,
+.win-checkbox-group::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* --------------------------------------------------------------------------
+   8. FOOTER ACTION BAR + CANCEL
+   The bar itself is shell (it is what a window always has); the Download
+   split-button that usually sits next to Cancel lives in download-window.css.
+   -------------------------------------------------------------------------- */
+.win-modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 6px;
+    padding: 0 4px;
+}
+
+.win-btn-cancel {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 12px 16px;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.win-btn-cancel:hover {
+    color: #ffffff;
+}

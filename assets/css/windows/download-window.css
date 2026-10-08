@@ -1,0 +1,448 @@
+/* ==========================================================================
+   COLLATZIUM — Download window CONTENT  (assets/css/windows/download-window.css)
+   --------------------------------------------------------------------------
+   Ported 1:1 from the <style> block of windows.html (showcase stays untouched).
+
+   Depends on assets/css/windows/window.css for:
+     --win-* theme tokens, .win-modal-* shell, .win-modal-actions,
+     .win-btn-cancel, and the themed scrollbar (which also still answers to
+     the `.win-checkbox-group` alias used below).
+
+   CONTENTS
+     1. Option list container
+     2. Option row (parent + child share one base look)
+     3. Icon / text / circle-checkbox internals
+     4. Parent-row and child-row variants
+     5. Collapse animation + ABSOLUTE parent-open rule
+     6. Extension badge (inline `.md` pill)
+     7. Download split-button + format dropdown
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. OPTION LIST CONTAINER
+   Scrollbar look itself comes from window.css; only the layout lives here.
+   -------------------------------------------------------------------------- */
+.win-checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   2. OPTION ROW — one card per checkbox
+   -------------------------------------------------------------------------- */
+.win-custom-checkbox-row {
+    display: flex;
+    align-items: center;
+    background: var(--win-item-bg);
+    border: 1px solid var(--win-item-border);
+    border-radius: 18px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.win-custom-checkbox-row:hover {
+    background: var(--win-item-hover-bg);
+    border-color: var(--win-item-active-border);
+}
+
+.win-custom-checkbox-row:focus-visible {
+    outline: 2px solid var(--win-accent-color);
+    outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   3. ROW INTERNALS — icon, text block, circle checkbox
+   -------------------------------------------------------------------------- */
+
+/* Иконка слева */
+.win-item-icon-wrapper {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #94a3b8;
+    transition: color 0.2s ease;
+}
+
+.win-custom-checkbox-row.checked .win-item-icon-wrapper {
+    color: var(--win-accent-color);
+}
+
+.win-item-icon-wrapper svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* Блок заголовка и описания */
+.win-item-text-block {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    margin: 0 12px;
+    min-height: 38px;
+}
+
+.win-item-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #f1f5f9;
+    line-height: 1.25;
+}
+
+.win-item-description {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 4px;
+    line-height: 1.2;
+}
+
+/* Если описания нет — скрываем его, заголовок центрируется автоматически */
+.win-item-description:empty {
+    display: none;
+    margin-top: 0;
+}
+
+/* Кружочек-чекбокс справа */
+.win-circle-checkbox {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    background: transparent;
+}
+
+.win-custom-checkbox-row.checked .win-circle-checkbox {
+    border-color: var(--win-accent-color);
+    background: var(--win-accent-color);
+    box-shadow: 0 0 10px var(--win-accent-glow);
+}
+
+.win-circle-checkbox svg {
+    width: 14px;
+    height: 14px;
+    stroke: #ffffff;
+    stroke-width: 3;
+    fill: none;
+    opacity: 0;
+    transform: scale(0.6);
+    transition: all 0.15s ease;
+}
+
+.win-custom-checkbox-row.checked .win-circle-checkbox svg {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* --------------------------------------------------------------------------
+   4. PARENT / CHILD HIERARCHY
+   -------------------------------------------------------------------------- */
+.win-custom-checkbox-row.win-parent-row {
+    border-width: 1px;
+    border-color: var(--win-item-border);
+    background: var(--win-item-bg);
+}
+
+.win-custom-checkbox-row.win-parent-row:hover {
+    background: var(--win-item-hover-bg);
+}
+
+.win-custom-checkbox-row.win-parent-row.checked {
+    border-width: 1px;
+    border-color: var(--win-item-active-border);
+}
+
+/* --------------------------------------------------------------------------
+   5. COLLAPSE ANIMATION
+   -------------------------------------------------------------------------- */
+
+/* анимированное сворачивание дочерней группы (не мгновенно) */
+.win-child-group {
+    display: grid;
+    grid-template-rows: 1fr;
+    opacity: 1;
+    /* НЕ ставить visibility: visible — пробьёт visibility:hidden оверлея,
+       невидимые строки начнут перехватывать клики мыши */
+    transition: grid-template-rows 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s ease,
+                visibility 0.3s ease;
+}
+
+.win-child-group.collapsed {
+    grid-template-rows: 0fr;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* ==================================================================
+   АБСОЛЮТНОЕ ПРАВИЛО: включённый родитель ВСЕГДА развёрнут
+   ------------------------------------------------------------------
+   Инвариант: если у строки-родителя (.win-parent-row) есть дочерняя
+   группа (.win-child-group) и родитель включён (.checked) — группа
+   обязана быть развёрнута. Состояние «родитель вкл + дети свёрнуты»
+   недопустимо.
+
+   Правило стоит ПОСЛЕ .collapsed и имеет большую специфичность,
+   поэтому перебивает его даже если класс .collapsed остался в разметке.
+   visibility: inherit (а не visible!) — иначе пробьём visibility:hidden
+   неактивного оверлея и невидимые строки начнут ловить клики.
+   ================================================================== */
+.win-custom-checkbox-row.win-parent-row.checked + .win-child-group,
+.win-custom-checkbox-row.win-parent-row.checked + .win-child-group.collapsed {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    visibility: inherit;
+    pointer-events: auto;
+}
+
+.win-child-stack {
+    overflow: hidden;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-left: 16px;
+    padding-left: 10px;
+    border-left: 2px solid rgba(var(--win-primary-rgb), 0.28);
+}
+
+/* дочерние чекбоксы — чуть меньше и компактнее */
+.win-custom-checkbox-row.win-child-row {
+    padding: 9px 12px;
+    border-radius: 15px;
+}
+
+.win-custom-checkbox-row.win-child-row .win-item-icon-wrapper {
+    width: 30px;
+    height: 30px;
+}
+
+.win-custom-checkbox-row.win-child-row .win-item-icon-wrapper svg {
+    width: 18px;
+    height: 18px;
+}
+
+.win-custom-checkbox-row.win-child-row .win-item-text-block {
+    margin: 0 10px;
+    min-height: 30px;
+}
+
+.win-custom-checkbox-row.win-child-row .win-item-title {
+    font-size: 13.5px;
+}
+
+.win-custom-checkbox-row.win-child-row .win-item-description {
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+.win-custom-checkbox-row.win-child-row .win-circle-checkbox {
+    width: 20px;
+    height: 20px;
+}
+
+.win-custom-checkbox-row.win-child-row .win-circle-checkbox svg {
+    width: 12px;
+    height: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   6. EXTENSION BADGE — inline `.md` pill inside a title
+   -------------------------------------------------------------------------- */
+.win-ext-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 7px;
+    margin-left: 6px;
+    border-radius: 999px;
+    background: rgba(var(--win-primary-rgb), 0.18);
+    border: 1px solid rgba(var(--win-primary-rgb), 0.45);
+    color: var(--win-accent-color);
+    vertical-align: middle;
+    letter-spacing: 0.3px;
+}
+
+/* --------------------------------------------------------------------------
+   7. DOWNLOAD SPLIT-BUTTON + FORMAT DROPDOWN
+   Split-кнопка Download + выбор формата (скругления как у модалки: 24px)
+   -------------------------------------------------------------------------- */
+.win-download-split {
+    position: relative;
+    flex: 1.2;
+    display: flex;
+    align-items: stretch;
+    background: var(--win-accent-color);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 24px;
+    box-shadow: 0 6px 20px var(--win-accent-glow);
+    transition: filter 0.2s ease, transform 0.15s ease;
+}
+
+.win-download-split:hover {
+    filter: brightness(1.1);
+}
+
+.win-btn-download-main {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    padding: 12px 8px 12px 18px;
+    border-top-left-radius: 24px;
+    border-bottom-left-radius: 24px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.win-btn-download-main:active {
+    transform: scale(0.98);
+}
+
+.win-btn-download-main svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.win-btn-download-main .win-ext-pill {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #ffffff;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
+}
+
+.win-btn-divider {
+    width: 1px;
+    align-self: stretch;
+    background: rgba(255, 255, 255, 0.25);
+    margin: 8px 0;
+}
+
+.win-btn-download-toggle {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    padding: 0 14px;
+    border-top-right-radius: 24px;
+    border-bottom-right-radius: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+}
+
+.win-btn-download-toggle:hover {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.win-btn-download-toggle .win-arrow-icon {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+    transition: transform 0.2s ease;
+}
+
+.win-download-split.open .win-arrow-icon {
+    transform: rotate(180deg);
+}
+
+/* Выпадающее меню форматов — по умолчанию вверх, при нехватке места класс .below открывает вниз */
+.win-format-menu {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    width: 100%;
+    min-width: 200px;
+    max-height: 240px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    background: #1a1d29;
+    border: 1px solid var(--win-item-active-border);
+    border-radius: 16px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55), 0 0 24px rgba(var(--win-primary-rgb), 0.18);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+    z-index: 20;
+}
+
+.win-format-menu.below {
+    bottom: auto;
+    top: calc(100% + 8px);
+    transform: translateY(-8px);
+}
+
+.win-download-split.open .win-format-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.win-format-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 10px;
+    background: none;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    text-align: left;
+    color: #e2e8f0;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.win-format-item:hover {
+    background: var(--win-item-hover-bg);
+}
+
+.win-format-item.selected {
+    background: rgba(var(--win-primary-rgb), 0.16);
+}
+
+.win-format-badge {
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(var(--win-primary-rgb), 0.18);
+    border: 1px solid rgba(var(--win-primary-rgb), 0.45);
+    color: var(--win-accent-color);
+    padding: 2px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+}

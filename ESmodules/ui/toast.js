@@ -16,16 +16,33 @@ const reduceMotion =
 const byId = new Map();              /* id → element registry */
 let seq = 0;                         /* incremental id */
 
+// ------ COLOR NAMES ------ \\
+const COLOR_NAMES = {
+    yellow: '#fbbf24',
+    orange: '#fb923c',
+    green:  '#34d399',
+    blue:   '#60a5fa',
+    cyan:   '#22d3ee',
+    red:    '#f87171',
+    pink:   '#f472b6',
+    white:  '#f8fafc',
+};
+
 // ------ RESOLVE COLOR ------ \\
 function resolveColor(raw) {
-    let c = (raw ?? '').trim();                 /* normalize */
+    const input = (raw ?? '').trim();           /* normalize */
+
+    const named = COLOR_NAMES[input.toLowerCase()];
+    if (named) return named;                    /* 'green' → prepared hex */
+
+    let c = input;
     if (c && !c.startsWith('#')) c = '#' + c;   /* allow without hash */
 
     const ok = /^#[0-9A-F]{6}$/i.test(c);       /* strict hex */
     if (ok) return c;
 
     const fallback = getComputedStyle(toastRoot).getPropertyValue('--toast-color').trim(); /* CSS fallback */
-    return fallback || '#ef4444';
+    return fallback || '#fc0320';
 }
 
 // ------ RESOLVE LIFETIME ------ \\

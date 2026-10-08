@@ -37,6 +37,9 @@ export let seqListObj_Font = $('.txtList-obj_font');
 export const txtList_num = $('.txtList-num');
 export const seqListContainer = $('.sequence-list-container');
 
+// copy button
+export const copyButton = $$$('copyResults_button');
+
 // toast — автономный доступ, лениво (DOM может ещё не быть готов при импорте)
 export const toastRoot = document.documentElement;
 function ensureContainer(id, ariaLabel) {
@@ -86,9 +89,3 @@ export const seqList_Elements = {
     txtList_sidebar,
     seqListContainer
 }
-
-
-
-
-
-

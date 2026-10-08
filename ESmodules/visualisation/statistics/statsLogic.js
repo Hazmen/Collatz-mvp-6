@@ -3,15 +3,24 @@ import * as st from '../../state/state.js';
 // ALL the logic for the statistics calculations is here, in this file
 
 // ===== TABLE OF CONTENTS ===== //
-// HELPERS:        getData, getVisibleTotalSteps, getCurrentMaxNum
+// HELPERS:        getData, getVisibleTotalSteps, getCurrentMaxNum ;
+
+// SEED:           getStartValue, getStartBitLength, getStartDigits, getStartV2,
+//                 getStartOddPart, getStartModProfile, getStartPureEvenRun,
+//                 getStartParityVector, getStepsPerBit ;
+
 // ABSOLUTE:       getAllEvenNums, getAllOddNums, getMaxNumsStep, getFirstDropStep,
 //                 getCountOfRecordBreaks, getCountOfLocalMaximas, getCountOfLocalMinimas,
-//                 getCountOfMonotoneSegments
-// TRAJECTORY:     getEoverO, getGrowthProduct, getAverageMultiplerPerStep, getAreaUnderCurve
-// TAIL & SHARE:   getStepsFromMaxTo1, getShareAboveStart
+//                 getCountOfMonotoneSegments ;
+
+// TRAJECTORY:     getEoverO, getGrowthProduct, getAverageMultiplerPerStep, getAreaUnderCurve ;
+
+// TAIL & SHARE:   getStepsFromMaxTo1, getShareAboveStart ;
+
 // BINARY:         v2, getTotalV2, getMode4Breakdown, getBitShiftToPeak, getHeavyStepsCount
-// RATIOS:         getOvershoot, PeakToStartAndStepsRatio
-// DISTRIBUTION:   getMean, getMedian, getLogStd, getAveragePercentile
+// RATIOS:         getOvershoot, PeakToStartAndStepsRatio ;
+
+// DISTRIBUTION:   getMean, getMedian, getLogStd, getAveragePercentile ;
 
 // ===================================================================== \\
 //  HELPERS & DIRECT ACCESSORS                                           \\
@@ -31,6 +40,81 @@ export function getVisibleTotalSteps() {
 // ------ Current running maximum displayed ------ \\
 export function getCurrentMaxNum() {
     return st.SBSconfig.currentMaxNum;      /* biggest value out of the shown ones */
+}
+
+// ===================================================================== \\
+//  SEED (start-value diagnostics — pure analysis of n)                    //
+// ===================================================================== //
+// Cheap O(log n) reads of the starting number. Everything except the last
+// two works before the run finishes; no full path walk needed.
+
+// ------ Active start value (n) ------ \\
+export function getStartValue() {
+    return st.state.activeInputValue;       /* the input n; 0n = not set yet */
+}
+
+// ------ Bit length of the start (floor(log2(n)) + 1) ------ \\
+export function getStartBitLength() {
+    const start = st.state.activeInputValue;
+    if (start <= 0n) return 0;              /* no result yet */
+    return start.toString(2).length;       /* binary digit count */
+}
+
+// ------ Decimal digit count of the start ------ \\
+export function getStartDigits() {
+    const start = st.state.activeInputValue;
+    if (start <= 0n) return 0;              /* no result yet */
+    return start.toString(10).length;      /* decimal digit count */
+}
+
+// ------ Exponent of 2 in the start (trailing zero bits) ------ \\
+export function getStartV2() {
+    const start = st.state.activeInputValue;
+    if (start <= 0n) return 0n;              /* no result yet */
+    return v2(start);                       /* reuse the bit-game helper */
+}
+
+// ------ Start with all factors of 2 divided out ------ \\
+export function getStartOddPart() {
+    const start = st.state.activeInputValue;
+    if (start <= 0n) return 0n;              /* no result yet */
+    return start / (2n ** v2(start));       /* odd core of n */
+}
+
+// ------ Residue profile: mod 4 / 8 / 16 / 3 (predicts the first moves) ------ \\
+// e.g. n = 3 (mod 4) almost always grows first; n = 1 (mod 4) drops fast.
+export function getStartModProfile() {
+    const start = st.state.activeInputValue;
+    if (start <= 0n) return { mod4: 0n, mod8: 0n, mod16: 0n, mod3: 0n };  /* no result yet */
+    return { mod4: start % 4n, mod8: start % 8n, mod16: start % 16n, mod3: start % 3n };
+}
+
+// ------ Pure even run: halvings before the first odd ------ \\
+export function getStartPureEvenRun() {
+    const start = st.state.activeInputValue;
+    if (start <= 0n) return 0;               /* no result yet */
+    return Number(v2(start));               /* straight divisions by 2 ahead */
+}
+
+// ------ Parity vector of the first k path values ('1' = odd, '0' = even) ------ \\
+// Classic Collatz invariant of the seed; needs only the first k items.
+export function getStartParityVector(k = 8) {
+    const data = getData();
+    const out = [];
+    for (let i = 0; i < k && i < data.length; i++) {
+        out.push((data[i] & 1n) === 1n ? '1' : '0');  /* lowest bit = parity */
+    }
+    return out.join('');
+}
+
+// ------ Steps per start bit: how "expensive" the seed was for its size ------ \\
+export function getStepsPerBit() {
+    const data = getData();
+    const bits = getStartBitLength();
+    if (data.length === 0 || bits === 0) return '0.00';  /* no result yet */
+    const steps = BigInt(data.length - 1);
+    const b = BigInt(bits);
+    return `${steps / b}.${((steps % b) * 100n / b).toString().padStart(2, '0')}`;
 }
 
 // ===================================================================== \\
@@ -161,8 +245,9 @@ export function getCountOfMonotoneSegments() {
 
 // ------ Even-to-odd step ratio (the E/O factor) ------ //
 export function getEoverO() {
-    const E = getAllEvenNums();     /* halving steps */
-    const O = getAllOddNums();      /* tripling steps */
+    const { E, O } = countEOverO();   /* single pass for both counters */
+
+    if (O === 0) return E === 0 ? 0 : Infinity;   /* no odd steps yet (e.g. n=1) — avoid NaN */
 
     return E / O;                   /* the classic E/O ratio, trending to log2(3) ~ 1.585 */
 }
@@ -182,6 +267,8 @@ export function getGrowthProduct() {
 export function getAverageMultiplerPerStep() {
     const data = getData();
     const S = data.length - 1;           /* number of transitions, not items */
+    if (S <= 0) return 1;                /* 0 or 1 items -> no transitions yet */
+
     const { E, O } = countEOverO();      /* halving / tripling steps */
 
     const lnM = (O * Math.log(3) - E * Math.log(2)) / S; /* mean of the log-multipliers */
@@ -241,7 +328,7 @@ export function getShareAboveStart() {
 function v2(n) {                            /* v2(n) = how many times 2 divides n */
     let count = 0n;
     while ((n & 1n) === 0n && n !== 0n) {  /* keep halving while the number stays even */
-        n /= 2;                             // divide by 2 each pass
+        n /= 2n;                            // divide by 2 each pass (BigInt needs 2n, not 2)
         count++;                            // one more bit consumed
     }
 
@@ -281,6 +368,8 @@ export function getMode4Breakdown() {
 // ------ Difference in bit length between the start and the peak ------ //
 export function getBitShiftToPeak() {
     const data = getData();
+    if (data.length === 0) return 0n;           /* no result yet */
+
     const maxNum = st.state.workerMaxNum;   // the peak
 
     const startBits = BigInt(data[0].toString(2).length);   /* bit length of the start value */
@@ -311,15 +400,17 @@ export function getHeavyStepsCount() {
 export function getOvershoot() {
     const peak = st.state.workerMaxNum;         // the highest point
     const start = st.state.activeInputValue;    // the starting value
+    if (start === 0n) return 0n;                /* no result yet */
 
     return peak / start;                        /* >= 1 practically for Collatz */
 }
 
 // ------ Peak-to-start and peak-to-steps ratios (2 decimals) ------ //
-export function PeakToStartAndStepsRatio() {
+export function getPeakToStartAndStepsRatio() {
     const peak = st.state.workerMaxNum;      // the peak value
     const steps = BigInt(st.state.workerListLen);  // total steps in the path
     const start = st.state.activeInputValue; // the starting value
+    if (start === 0n || steps === 0n) return { peakToStart: '0.00', peakToSteps: '0.00' }; // no result yet
 
     // Build Ratio as "int + 2 fractional digits" by integer bigint math.
     const intPart = peak / start;                          /* whole part of peak/start */
@@ -331,6 +422,9 @@ export function PeakToStartAndStepsRatio() {
     }
 }
 
+// Backward-compat alias for the old capitalized name.
+export const PeakToStartAndStepsRatio = getPeakToStartAndStepsRatio;
+
 // ===================================================================== \\
 //  DISTRIBUTION STATS  (statistics over the produced values)                //
 // ===================================================================== //
@@ -339,6 +433,7 @@ export function PeakToStartAndStepsRatio() {
 // ------ Arithmetic-array mean of all path values ------ //
 export function getMean() {
     const data = getData();
+    if (data.length === 0) return 0;    /* no result yet */
 
     let sum = 0n;
 
@@ -351,6 +446,8 @@ export function getMean() {
 // ------ Median of the path values ------ //
 export function getMedian() {
     const data = getData();
+    if (data.length === 0) return 0;    /* no result yet */
+
     const sorted = [...data].sort((a, b) => a < b ? -1 : a > b ? 1 : 0); /* values in ascending order */
     const mid = Math.floor(sorted.length / 2);   /* the middle index */
 
@@ -361,21 +458,24 @@ export function getMedian() {
         : (sorted[mid - 1] + sorted[mid]) / 2n);     // even
 }
 
-// ------ Standard deviation of the log-2 bit lengths ------ //
+// ------ Standard deviation of the log-2 magnitudes (bit lengths) ------ //
+// NOTE: bit length ~= log2(value), so this is the stddev over log2(values).
+// (Previously this used log2(bitlen) — a double log that squashed everything to ~0.)
 export function getLogStd() {
     const data = getData();
+    if (data.length === 0) return 0;    /* no result yet */
 
     let sumLog = 0;
 
     for (let i = 0; i < data.length; i++) {
-        sumLog += Math.log2(Number(data[i].toString(2).length));   /* bit length of value i */
+        sumLog += Number(data[i].toString(2).length);   /* bit length of value i ~= log2(value) */
     }
 
     const meanLog = sumLog / data.length;          /* mean bit length */
     let sqSum = 0;
 
     for (let i = 0; i < data.length; i++) {
-        const deviation = Math.log2(Number(data[i].toString(2).length)) - meanLog; // diff from mean
+        const deviation = Number(data[i].toString(2).length) - meanLog; // diff from mean
         sqSum += deviation * deviation;            // squared, for a proper standard deviation
     }
 
@@ -386,6 +486,8 @@ export function getLogStd() {
 export function getAveragePercentile() {
     const data = getData();
     const peak = st.state.workerMaxNum;      // the max value
+    if (data.length === 0 || peak === 0n) return '0.00';   /* no result yet */
+
     const n = BigInt(data.length);           // number of steps
 
     let sum = 0n;

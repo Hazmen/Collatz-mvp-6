@@ -9,6 +9,7 @@ import './ui/hard-reset.js';
 import '../webComponents/speedController.js';
 import '../webComponents/outputModeController.js';
 import './visualisation/viewModes/sequenceView.js';
+import './ui/copy-button.js'
 
 // input controls
 InputControlsHere(); // It should work..
